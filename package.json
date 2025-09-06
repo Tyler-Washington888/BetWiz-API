@@ -2,11 +2,15 @@
   "name": "betwiz-api",
   "version": "1.0.0",
   "description": "Backend API for Betwiz application",
-  "main": "src/server.js",
+  "main": "server/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js",
+    "test": "mocha test/**/*.spec.js --timeout 10000 --exit",
+    "test:unit": "mocha test/unit/**/*.spec.js --timeout 5000 --exit",
+    "test:integration": "mocha test/integration/**/*.spec.js --timeout 10000 --exit",
+    "test:coverage": "nyc npm test",
+    "test:watch": "mocha test/**/*.spec.js --timeout 10000 --watch"
   },
   "keywords": [
     "api",
@@ -18,18 +22,29 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2",
-    "mongodb": "^6.3.0",
-    "mongoose": "^8.0.3",
-    "jsonwebtoken": "^9.0.2",
-    "express-async-handler": "^1.2.0",
-    "dotenv": "^16.3.1",
-    "cors": "^2.8.5",
-    "config": "^3.3.9",
+    "bcryptjs": "^2.4.3",
     "colors": "^1.4.0",
-    "bcryptjs": "^2.4.3"
+    "config": "^3.3.9",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-async-handler": "^1.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.3.0",
+    "mongoose": "^8.0.3"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "@types/chai": "^5.2.2",
+    "@types/mocha": "^10.0.10",
+    "@types/sinon": "^17.0.4",
+    "@types/supertest": "^6.0.3",
+    "chai": "^4.3.10",
+    "chai-http": "^5.1.2",
+    "mocha": "^11.7.2",
+    "mongodb-memory-server": "^10.2.0",
+    "nodemon": "^3.0.2",
+    "nyc": "^17.1.0",
+    "sinon": "^21.0.0",
+    "supertest": "^7.1.4"
   }
 }

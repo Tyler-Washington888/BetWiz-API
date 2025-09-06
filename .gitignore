@@ -109,4 +109,8 @@ Thumbs.db
 
 # Build outputs
 build/
-dist/ 
+dist/
+
+# Test coverage
+coverage/
+.nyc_output/ 

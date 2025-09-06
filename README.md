@@ -1,1 +1,2 @@
 # BetWiz-APi
+# BetWiz-API

@@ -2,15 +2,19 @@
   "name": "betwiz-api",
   "version": "1.0.0",
   "description": "Backend API for Betwiz application",
-  "main": "server/server.js",
+  "main": "dist/server/server.js",
   "scripts": {
-    "start": "node server/server.js",
-    "dev": "nodemon server/server.js",
+    "build": "tsc",
+    "start": "node dist/server/server.js",
+    "dev": "ts-node server/server.ts",
+    "dev:watch": "nodemon --exec ts-node server/server.ts",
     "test": "mocha test/**/*.spec.js --timeout 10000 --exit",
     "test:unit": "mocha test/unit/**/*.spec.js --timeout 5000 --exit",
     "test:integration": "mocha test/integration/**/*.spec.js --timeout 10000 --exit",
     "test:coverage": "nyc npm test",
-    "test:watch": "mocha test/**/*.spec.js --timeout 10000 --watch"
+    "test:watch": "mocha test/**/*.spec.js --timeout 10000 --watch",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean"
   },
   "keywords": [
     "api",
@@ -35,16 +39,23 @@
   },
   "devDependencies": {
     "@types/chai": "^5.2.2",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/mocha": "^10.0.10",
+    "@types/mongoose": "^5.11.97",
+    "@types/node": "^24.3.1",
     "@types/sinon": "^17.0.4",
     "@types/supertest": "^6.0.3",
     "chai": "^4.3.10",
     "chai-http": "^5.1.2",
     "mocha": "^11.7.2",
     "mongodb-memory-server": "^10.2.0",
-    "nodemon": "^3.0.2",
+    "nodemon": "^3.1.10",
     "nyc": "^17.1.0",
     "sinon": "^21.0.0",
-    "supertest": "^7.1.4"
+    "supertest": "^7.1.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
   }
 }

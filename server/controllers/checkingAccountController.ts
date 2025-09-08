@@ -139,16 +139,8 @@ const increasePromoBalance = asyncHandler<
     throw new Error("Despoit amount is required");
   }
 
-  const checkingAccount: ICheckingAccountDocument | null =
-    await CheckingAccount.findOne({ userId });
-
-  if (!checkingAccount) {
-    res.status(404);
-    throw new Error(`Checking account not found for user: ${userId}`);
-  }
-
   try {
-    await checkingAccount.increasePromoBalance(amount);
+    const checkingAccount = await increasePromoBalanceByUserId(userId, amount);
 
     const response: TransactionResult = {
       success: true,
@@ -305,6 +297,67 @@ export const deleteCheckingAccountForUser = async (
   }
 
   await checkingAccount.deleteOne();
+};
+
+// Helper function to increase promo balance by userId (for internal use)
+export const increasePromoBalanceByUserId = async (
+  userId: string,
+  amount: number
+): Promise<ICheckingAccountDocument> => {
+  const checkingAccount: ICheckingAccountDocument | null =
+    await CheckingAccount.findOne({ userId });
+
+  if (!checkingAccount) {
+    throw new Error(`Checking account not found for user: ${userId}`);
+  }
+
+  await checkingAccount.increasePromoBalance(amount);
+  return checkingAccount;
+};
+
+// Helper function to decrease balance by userId (for internal use)
+export const decreaseBalanceByUserId = async (
+  userId: string,
+  amount: number
+): Promise<ICheckingAccountDocument> => {
+  const checkingAccount: ICheckingAccountDocument | null =
+    await CheckingAccount.findOne({ userId });
+
+  if (!checkingAccount) {
+    throw new Error(`Checking account not found for user: ${userId}`);
+  }
+
+  await checkingAccount.decreaseBalance(amount);
+  return checkingAccount;
+};
+
+// Helper function to decrease promo balance by userId (for internal use)
+export const decreasePromoBalanceByUserId = async (
+  userId: string,
+  amount: number
+): Promise<ICheckingAccountDocument> => {
+  const checkingAccount: ICheckingAccountDocument | null =
+    await CheckingAccount.findOne({ userId });
+
+  if (!checkingAccount) {
+    throw new Error(`Checking account not found for user: ${userId}`);
+  }
+
+  await checkingAccount.decreasePromoBalance(amount);
+  return checkingAccount;
+};
+
+// Helper function to decrease from appropriate balance type
+export const decreaseBalanceByType = async (
+  userId: string,
+  amount: number,
+  balanceType: "regular" | "promo"
+): Promise<ICheckingAccountDocument> => {
+  if (balanceType === "promo") {
+    return await decreasePromoBalanceByUserId(userId, amount);
+  } else {
+    return await decreaseBalanceByUserId(userId, amount);
+  }
 };
 
 export {

@@ -6,6 +6,10 @@ import connectDB from "./config/db";
 import { errorHandler } from "./middleware/errorMiddleware";
 import userRoutes from "./routes/userRoutes";
 import checkingAccountRoutes from "./routes/checkingAccountRoutes";
+import playerRoutes from "./routes/playerRoutes";
+import gameRoutes from "./routes/gameRoutes";
+import pickRoutes from "./routes/pickRoutes";
+import entryRoutes from "./routes/entryRoutes";
 
 // Load environment variables
 dotenv.config();
@@ -22,6 +26,10 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use("/api/users", userRoutes);
 app.use("/api/checking-account", checkingAccountRoutes);
+app.use("/api/players", playerRoutes);
+app.use("/api/games", gameRoutes);
+app.use("/api/picks", pickRoutes);
+app.use("/api/entries", entryRoutes);
 
 // Error handler middleware
 app.use(errorHandler);

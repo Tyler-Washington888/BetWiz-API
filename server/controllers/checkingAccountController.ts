@@ -6,7 +6,8 @@ import {
   checkingAccountRequest,
   ICheckingAccountDocument,
 } from "../interfaces/checkingAccount";
-import { AuthenticatedRequest, TransactionResult } from "@/interfaces/common";
+import { AuthenticatedRequest } from "@/interfaces/user";
+import { TransactionResult } from "@/interfaces/checkingAccount";
 
 // @desc    Create checking account for user (Admin only)
 // @route   POST /api/checking-account/admin/create

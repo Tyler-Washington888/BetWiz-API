@@ -1,5 +1,5 @@
 import { Types, Document } from "mongoose";
-import { AuthenticatedRequest } from "../common";
+import { AuthenticatedRequest } from "@/interfaces/user";
 
 // Checking Account document interface (with methods)
 export interface ICheckingAccountDocument extends Document {
@@ -35,4 +35,14 @@ export interface CheckingAccountResponse {
   lastTransaction: Date | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Transaction result interface
+export interface TransactionResult {
+  success: boolean;
+  balance: number;
+  promoBalance: number;
+  lastTransaction: Date | null;
+  amount?: number;
+  message: string;
 }

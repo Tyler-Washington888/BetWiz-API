@@ -17,7 +17,7 @@ import {
   deleteCheckingAccountForUser,
 } from "./checkingAccountController";
 import { ICheckingAccountDocument } from "@/interfaces/checkingAccount";
-import { AuthenticatedRequest } from "@/interfaces/common";
+import { AuthenticatedRequest } from "@/interfaces/user";
 
 // @desc    Register new user
 // @route   POST /api/users/register
@@ -51,8 +51,7 @@ const registerUser = asyncHandler(
     });
 
     if (user) {
-      const checkingAccount: ICheckingAccountDocument =
-        await createCheckingAccountForUser(user._id.toString());
+      await createCheckingAccountForUser(user._id.toString());
 
       const response: RegisterUserResponse = {
         _id: user._id.toString(),

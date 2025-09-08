@@ -3,7 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { Request, Response, NextFunction } from "express";
 import User from "../models/userModel";
 import { IUserDocument, JWTPayload, UserRole } from "../interfaces/user";
-import { AuthenticatedRequest } from "@/interfaces/common";
+import { AuthenticatedRequest } from "@/interfaces/user";
 
 const protect = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {

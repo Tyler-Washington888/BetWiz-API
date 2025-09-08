@@ -7,19 +7,6 @@ export enum UserRole {
   ADMIN = "admin",
 }
 
-// Base User interface (without password)
-export interface IUser {
-  _id: string;
-  firstname: string;
-  lastname: string;
-  email: string;
-  dateOfBirth: string; // MM-DD-YYYY format
-  linkedBet360Account: boolean;
-  role: UserRole;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 // User document interface (with password and methods)
 export interface IUserDocument extends Document {
   _id: string;
@@ -88,26 +75,15 @@ export interface UserProfileResponse {
   updatedAt: Date;
 }
 
-// Update user profile request interface
-export interface UpdateUserProfileRequest {
-  firstname?: string;
-  lastname?: string;
-  email?: string;
-  dateOfBirth?: string;
-  linkedBet360Account?: boolean;
-}
-
-// Change password request interface
-export interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
 // User-specific authenticated request interface
 export interface UserAuthenticatedRequest<TBody = any> extends Request {
   user: IUserDocument;
   body: TBody;
+}
+
+// Extended Request interface with user
+export interface AuthenticatedRequest extends Request {
+  user: IUserDocument;
 }
 
 // JWT payload interface
@@ -115,15 +91,4 @@ export interface JWTPayload {
   id: string;
   iat?: number;
   exp?: number;
-}
-
-// User creation data interface (internal use)
-export interface CreateUserData {
-  firstname: string;
-  lastname: string;
-  email: string;
-  password: string;
-  dateOfBirth: string;
-  linkedBet360Account: boolean;
-  role?: UserRole;
 }

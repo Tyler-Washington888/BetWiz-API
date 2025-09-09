@@ -24,6 +24,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "baseUrl": "./",
+    "typeRoots": ["./node_modules/@types", "./types"],
     "paths": {
       "@/*": ["server/*"],
       "@/interfaces/*": ["server/interfaces/*/index.ts", "server/interfaces/*"],

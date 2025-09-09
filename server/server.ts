@@ -2,6 +2,20 @@ import express, { Application } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import colors from "colors";
+
+// Enable colors theme
+colors.setTheme({
+  silly: "rainbow",
+  input: "grey",
+  verbose: "cyan",
+  prompt: "grey",
+  info: "green",
+  data: "grey",
+  help: "cyan",
+  warn: "yellow",
+  debug: "blue",
+  error: "red",
+});
 import connectDB from "./config/db";
 import { errorHandler } from "./middleware/errorMiddleware";
 import userRoutes from "./routes/userRoutes";
@@ -37,5 +51,5 @@ app.use(errorHandler);
 const PORT: number = parseInt(process.env.PORT || "5000", 10);
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`.yellow.bold);
+  console.log(colors.yellow.bold(`🚀 Server running on port ${PORT}`));
 });

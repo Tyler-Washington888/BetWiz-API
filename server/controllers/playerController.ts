@@ -31,31 +31,34 @@ const createPlayer = asyncHandler(
       throw new Error("Team is required");
     }
 
-    // Check if player already exists (by firstName, lastName, and team)
-    const existingPlayer = await Player.findOne({ firstName, lastName, team });
-    if (existingPlayer) {
-      res.status(400);
-      throw new Error("Player already exists on this team");
+    let player: IPlayerDocument;
+    try {
+      player = await Player.create({
+        firstName,
+        lastName,
+        team,
+        position,
+      });
+
+      const response: PlayerResponse = {
+        _id: player._id.toString(),
+        firstName: player.firstName,
+        lastName: player.lastName,
+        team: player.team,
+        position: player.position,
+        createdAt: player.createdAt,
+        updatedAt: player.updatedAt,
+      };
+
+      res.status(201).json(response);
+    } catch (error: any) {
+      // Handle unique constraint violation
+      if (error.code === 11000) {
+        res.status(400);
+        throw new Error("Player already exists on this team");
+      }
+      throw error;
     }
-
-    const player: IPlayerDocument = await Player.create({
-      firstName,
-      lastName,
-      team,
-      position,
-    });
-
-    const response: PlayerResponse = {
-      _id: player._id.toString(),
-      firstName: player.firstName,
-      lastName: player.lastName,
-      team: player.team,
-      position: player.position,
-      createdAt: player.createdAt,
-      updatedAt: player.updatedAt,
-    };
-
-    res.status(201).json(response);
   }
 );
 
@@ -84,6 +87,11 @@ const getPlayers = asyncHandler(async (req: Request, res: Response) => {
 const getPlayerById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
 
+  if (!id) {
+    res.status(400);
+    throw new Error("Player ID is required");
+  }
+
   const player = await Player.findById(id);
 
   if (!player) {
@@ -111,6 +119,11 @@ const updatePlayer = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { firstName, lastName, team, position } = req.body;
 
+  if (!id) {
+    res.status(400);
+    throw new Error("Player ID is required");
+  }
+
   const player = await Player.findById(id);
 
   if (!player) {
@@ -118,43 +131,33 @@ const updatePlayer = asyncHandler(async (req: Request, res: Response) => {
     throw new Error("Player not found");
   }
 
-  // Check for duplicate if firstName, lastName, or team is being updated
-  if (firstName || lastName || team) {
-    const checkFirstName = firstName || player.firstName;
-    const checkLastName = lastName || player.lastName;
-    const checkTeam = team || player.team;
-
-    const existingPlayer = await Player.findOne({
-      _id: { $ne: id },
-      firstName: checkFirstName,
-      lastName: checkLastName,
-      team: checkTeam,
-    });
-
-    if (existingPlayer) {
-      res.status(400);
-      throw new Error("Player already exists on this team");
-    }
-  }
-
   if (firstName) player.firstName = firstName;
   if (lastName) player.lastName = lastName;
   if (team) player.team = team;
   if (position) player.position = position;
 
-  const updatedPlayer = await player.save();
+  try {
+    const updatedPlayer = await player.save();
 
-  const response: PlayerResponse = {
-    _id: updatedPlayer._id.toString(),
-    firstName: updatedPlayer.firstName,
-    lastName: updatedPlayer.lastName,
-    team: updatedPlayer.team,
-    position: updatedPlayer.position,
-    createdAt: updatedPlayer.createdAt,
-    updatedAt: updatedPlayer.updatedAt,
-  };
+    const response: PlayerResponse = {
+      _id: updatedPlayer._id.toString(),
+      firstName: updatedPlayer.firstName,
+      lastName: updatedPlayer.lastName,
+      team: updatedPlayer.team,
+      position: updatedPlayer.position,
+      createdAt: updatedPlayer.createdAt,
+      updatedAt: updatedPlayer.updatedAt,
+    };
 
-  res.json(response);
+    res.json(response);
+  } catch (error: any) {
+    // Handle unique constraint violation
+    if (error.code === 11000) {
+      res.status(400);
+      throw new Error("Player already exists on this team");
+    }
+    throw error;
+  }
 });
 
 // @desc    Delete player

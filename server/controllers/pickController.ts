@@ -104,6 +104,11 @@ const getPicks = asyncHandler(async (req: Request, res: Response) => {
 const getPickById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
 
+  if (!id) {
+    res.status(400);
+    throw new Error("Pick ID is required");
+  }
+
   const pick = await Pick.findById(id)
     .populate("player")
     .populate("game")

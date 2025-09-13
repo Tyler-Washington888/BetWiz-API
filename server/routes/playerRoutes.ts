@@ -6,16 +6,19 @@ import {
   updatePlayer,
   deletePlayer,
 } from "../controllers/playerController";
-import { adminOnly } from "../middleware/authMiddleware";
+import { adminOnly, protect } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
-router.route("/").get(getPlayers).post(adminOnly, createPlayer);
+router
+  .route("/")
+  .get(protect, adminOnly, getPlayers)
+  .post(protect, adminOnly, createPlayer);
 
 router
   .route("/:id")
   .get(getPlayerById)
-  .put(adminOnly, updatePlayer)
-  .delete(adminOnly, deletePlayer);
+  .put(protect, adminOnly, updatePlayer)
+  .delete(protect, adminOnly, deletePlayer);
 
 export default router;

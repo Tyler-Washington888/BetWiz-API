@@ -37,6 +37,11 @@ const createEntry = asyncHandler(
       throw new Error("Balance type is required");
     }
 
+    if (!wagerAmount) {
+      res.status(400);
+      throw new Error("Wager amount is required");
+    }
+
     if (!picks || picks.length === 0) {
       res.status(400);
       throw new Error("Picks are required");
@@ -109,7 +114,8 @@ const createEntry = asyncHandler(
             _id: entryPick.pick._id.toString(),
             player: {
               _id: entryPick.pick.player._id.toString(),
-              name: entryPick.pick.player.name,
+              firstName: entryPick.pick.player.firstName,
+              lastName: entryPick.pick.player.lastName,
               team: entryPick.pick.player.team,
               position: entryPick.pick.player.position,
               createdAt: entryPick.pick.player.createdAt,
@@ -186,7 +192,8 @@ const getMyEntries = asyncHandler(async (req: Request, res: Response) => {
         _id: entryPick.pick._id.toString(),
         player: {
           _id: entryPick.pick.player._id.toString(),
-          name: entryPick.pick.player.name,
+          firstName: entryPick.pick.player.firstName,
+          lastName: entryPick.pick.player.lastName,
           team: entryPick.pick.player.team,
           position: entryPick.pick.player.position,
           createdAt: entryPick.pick.player.createdAt,
@@ -261,7 +268,8 @@ const getEntryById = asyncHandler(async (req: Request, res: Response) => {
         _id: entryPick.pick._id.toString(),
         player: {
           _id: entryPick.pick.player._id.toString(),
-          name: entryPick.pick.player.name,
+          firstName: entryPick.pick.player.firstName,
+          lastName: entryPick.pick.player.lastName,
           team: entryPick.pick.player.team,
           position: entryPick.pick.player.position,
           createdAt: entryPick.pick.player.createdAt,

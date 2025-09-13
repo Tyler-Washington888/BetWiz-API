@@ -24,10 +24,25 @@ const userSchema = new Schema<IUserDocument>(
       unique: true,
       lowercase: true,
       trim: true,
+      validate: {
+        validator: function (value: string): boolean {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          return emailRegex.test(value);
+        },
+        message: "Please provide a valid email address",
+      },
     },
     password: {
       type: String,
       required: [true, "Please add a password"],
+      minlength: [4, "Password must be at least 4 characters"],
+      maxlength: [40, "Password cannot exceed 40 characters"],
+      validate: {
+        validator: function (value: string): boolean {
+          return !/\s/.test(value);
+        },
+        message: "Password cannot contain spaces",
+      },
     },
     dateOfBirth: {
       type: String,
@@ -45,7 +60,38 @@ const userSchema = new Schema<IUserDocument>(
         },
         {
           validator: function (value: string): boolean {
-            // Check if user is at least 21 years old
+            // Validate month (1-12) and day ranges for each month
+            const [month, day, year] = value.split("-").map(Number);
+
+            // Check month range
+            if (month < 1 || month > 12) {
+              return false;
+            }
+
+            // Days in each month (non-leap year)
+            const daysInMonth = [
+              31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+            ];
+
+            // Check for leap year and adjust February
+            const isLeapYear =
+              (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+            if (isLeapYear && month === 2) {
+              daysInMonth[1] = 29;
+            }
+
+            // Check day range for the specific month
+            if (day < 1 || day > daysInMonth[month - 1]) {
+              return false;
+            }
+
+            return true;
+          },
+          message:
+            "Please provide a valid date with correct month (01-12) and day for the given month",
+        },
+        {
+          validator: function (value: string): boolean {
             const [month, day, year] = value.split("-").map(Number);
             const birthDate = new Date(year, month - 1, day);
             const today = new Date();

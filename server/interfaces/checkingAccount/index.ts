@@ -43,6 +43,6 @@ export interface TransactionResult {
   balance: number;
   promoBalance: number;
   lastTransaction: Date | null;
-  amount?: number;
+  lastTransactionAmount?: number;
   message: string;
 }

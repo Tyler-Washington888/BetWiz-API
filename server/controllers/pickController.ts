@@ -36,7 +36,8 @@ const createPick = asyncHandler(
       _id: populatedPick._id.toString(),
       player: {
         _id: (populatedPick.player as any)._id.toString(),
-        name: (populatedPick.player as any).name,
+        firstName: (populatedPick.player as any).firstName,
+        lastName: (populatedPick.player as any).lastName,
         team: (populatedPick.player as any).team,
         position: (populatedPick.player as any).position,
         createdAt: (populatedPick.player as any).createdAt,
@@ -73,7 +74,8 @@ const getPicks = asyncHandler(async (req: Request, res: Response) => {
     _id: pick._id.toString(),
     player: {
       _id: (pick.player as any)._id.toString(),
-      name: (pick.player as any).name,
+      firstName: (pick.player as any).firstName,
+      lastName: (pick.player as any).lastName,
       team: (pick.player as any).team,
       position: (pick.player as any).position,
       createdAt: (pick.player as any).createdAt,
@@ -116,7 +118,8 @@ const getPickById = asyncHandler(async (req: Request, res: Response) => {
     _id: pick._id.toString(),
     player: {
       _id: (pick.player as any)._id.toString(),
-      name: (pick.player as any).name,
+      firstName: (pick.player as any).firstName,
+      lastName: (pick.player as any).lastName,
       team: (pick.player as any).team,
       position: (pick.player as any).position,
       createdAt: (pick.player as any).createdAt,

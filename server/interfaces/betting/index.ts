@@ -2,6 +2,48 @@ import { Document, Types } from "mongoose";
 import { Request } from "express";
 import { IUserDocument } from "../user";
 
+// Enums
+export enum PlayerPosition {
+  PG = "PG",
+  SG = "SG",
+  SF = "SF",
+  PF = "PF",
+  C = "C",
+}
+
+export enum NBATeam {
+  ATL = "Atlanta Hawks",
+  BOS = "Boston Celtics",
+  BKN = "Brooklyn Nets",
+  CHA = "Charlotte Hornets",
+  CHI = "Chicago Bulls",
+  CLE = "Cleveland Cavaliers",
+  DAL = "Dallas Mavericks",
+  DEN = "Denver Nuggets",
+  DET = "Detroit Pistons",
+  GSW = "Golden State Warriors",
+  HOU = "Houston Rockets",
+  IND = "Indiana Pacers",
+  LAC = "LA Clippers",
+  LAL = "Los Angeles Lakers",
+  MEM = "Memphis Grizzlies",
+  MIA = "Miami Heat",
+  MIL = "Milwaukee Bucks",
+  MIN = "Minnesota Timberwolves",
+  NO = "New Orleans Pelicans",
+  NYK = "New York Knicks",
+  OKC = "Oklahoma City Thunder",
+  ORL = "Orlando Magic",
+  PHI = "Philadelphia 76ers",
+  PHX = "Phoenix Suns",
+  POR = "Portland Trail Blazers",
+  SAC = "Sacramento Kings",
+  SA = "San Antonio Spurs",
+  TOR = "Toronto Raptors",
+  UTA = "Utah Jazz",
+  WAS = "Washington Wizards",
+}
+
 // Game interfaces
 export interface IGame {
   _id: string;
@@ -24,18 +66,20 @@ export interface IGameDocument extends Document {
 // Player interfaces
 export interface IPlayer {
   _id: string;
-  name: string;
-  team: string;
-  position: string;
+  firstName: string;
+  lastName: string;
+  team: NBATeam;
+  position: PlayerPosition;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface IPlayerDocument extends Document {
   _id: Types.ObjectId;
-  name: string;
-  team: string;
-  position: string;
+  firstName: string;
+  lastName: string;
+  team: NBATeam;
+  position: PlayerPosition;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -107,9 +151,10 @@ export interface CreateGameRequest {
 }
 
 export interface CreatePlayerRequest {
-  name: string;
-  team: string;
-  position: string;
+  firstName: string;
+  lastName: string;
+  team: NBATeam;
+  position: PlayerPosition;
 }
 
 export interface CreatePickRequest {
@@ -144,9 +189,10 @@ export interface GameResponse {
 
 export interface PlayerResponse {
   _id: string;
-  name: string;
-  team: string;
-  position: string;
+  firstName: string;
+  lastName: string;
+  team: NBATeam;
+  position: PlayerPosition;
   createdAt: Date;
   updatedAt: Date;
 }

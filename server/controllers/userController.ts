@@ -170,16 +170,15 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
 // @access  Private/Admin
 const acknowledgeBetwizBet360Link = asyncHandler(
   async (req: Request, res: Response) => {
-    const typedReq = req as AuthenticatedRequest;
-    const { userId } = req.params;
+    const { email } = req.params;
 
-    if (!userId) {
+    if (!email) {
       res.status(400);
-      throw new Error("User id is required");
+      throw new Error("User email is required");
     }
 
     try {
-      const user = await User.findById(userId);
+      const user = await User.findOne({ email });
 
       if (!user) {
         res.status(404);
@@ -200,7 +199,7 @@ const acknowledgeBetwizBet360Link = asyncHandler(
 
       // Add $20 to promo balance
       const updatedCheckingAccount = await increasePromoBalanceByUserId(
-        userId,
+        user._id.toString(),
         20
       );
 
@@ -239,10 +238,23 @@ const generateToken = (id: string): string => {
   });
 };
 
+// @desc    Get user by email (utility function)
+// @param   email - User's email address
+// @returns User document or null if not found
+const getUserByEmail = async (email: string): Promise<IUserDocument | null> => {
+  if (!email) {
+    throw new Error("Email is required");
+  }
+
+  const user = await User.findOne({ email });
+  return user;
+};
+
 export {
   registerUser,
   loginUser,
   getMyData,
   deleteUser,
   acknowledgeBetwizBet360Link,
+  getUserByEmail,
 };

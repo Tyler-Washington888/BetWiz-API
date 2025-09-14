@@ -8,6 +8,7 @@ import {
 } from "../interfaces/checkingAccount";
 import { AuthenticatedRequest } from "@/interfaces/user";
 import { TransactionResult } from "@/interfaces/checkingAccount";
+import { getUserByEmail } from "./userController";
 
 // @desc    Get checking account by ID (Admin only)
 // @route   GET /api/checking-account/:id
@@ -97,17 +98,17 @@ const increasePromoBalance = asyncHandler<
   Response<TransactionResult>
 >(async (req, res) => {
   const { amount } = req.body;
-  const { userId } = req.params;
-  const stringUserId = userId?.toString().trim();
+  const { email } = req.params;
+  const stringedEmail = email?.toString().trim();
 
-  if (!stringUserId) {
+  if (!stringedEmail) {
     res.status(400);
-    throw new Error("User id is required");
+    throw new Error("User email is required");
   }
 
-  if (userId === ":userId") {
+  if (email === ":email") {
     res.status(400);
-    throw new Error("Invalid user id provided");
+    throw new Error("Invalid user email provided");
   }
 
   if (!amount) {
@@ -116,8 +117,15 @@ const increasePromoBalance = asyncHandler<
   }
 
   try {
+    const user = await getUserByEmail(stringedEmail);
+
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found: " + stringedEmail);
+    }
+
     const checkingAccount = await increasePromoBalanceByUserId(
-      stringUserId,
+      user._id.toString(),
       amount
     );
 
@@ -145,17 +153,17 @@ const decreasePromoBalance = asyncHandler<
   Response<TransactionResult>
 >(async (req, res) => {
   const { amount } = req.body;
-  const { userId } = req.params;
-  const stringUserId = userId?.toString().trim();
+  const { email } = req.params;
+  const stringedEmail = email?.toString().trim();
 
-  if (!stringUserId) {
+  if (!stringedEmail) {
     res.status(400);
-    throw new Error("User id is required");
+    throw new Error("User email is required");
   }
 
-  if (userId === ":userId") {
+  if (email === ":email") {
     res.status(400);
-    throw new Error("Invalid user id provided");
+    throw new Error("Invalid user email provided");
   }
 
   if (!amount) {
@@ -163,15 +171,17 @@ const decreasePromoBalance = asyncHandler<
     throw new Error("Decrease amount is required");
   }
 
-  const checkingAccount = await CheckingAccount.findOne({ userId });
-
-  if (!checkingAccount) {
-    res.status(404);
-    throw new Error(`Checking account not found for user: ${userId}`);
-  }
-
   try {
-    await checkingAccount.decreasePromoBalance(amount);
+    const user = await getUserByEmail(stringedEmail);
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found: " + stringedEmail);
+    }
+
+    const checkingAccount = await decreasePromoBalanceByUserId(
+      user._id.toString(),
+      amount
+    );
 
     const response: TransactionResult = {
       success: true,

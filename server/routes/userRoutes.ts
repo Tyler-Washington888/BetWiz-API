@@ -15,8 +15,7 @@ router.post("/login", loginUser);
 router.get("/my-data", protect, getMyData);
 router.delete("/delete", protect, deleteUser);
 router.put(
-  "/:userId/acknowledge-betwiz-bet360-link",
-  adminOnly,
+  "/:email/acknowledge-betwiz-bet360-link",
   acknowledgeBetwizBet360Link
 );
 

@@ -22,7 +22,7 @@ export interface ICheckingAccountDocument extends Document {
 
 // Authenticated request interface for deposit operations
 export interface checkingAccountRequest extends AuthenticatedRequest {
-  params: { userId?: string };
+  params: { userId?: string; email?: string };
   body: { amount?: number };
 }
 

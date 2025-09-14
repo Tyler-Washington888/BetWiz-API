@@ -14,6 +14,26 @@ const createPick = asyncHandler(
   async (req: Request, res: Response<PickResponse>) => {
     const { player, game, statType, line }: CreatePickRequest = req.body;
 
+    if (!player) {
+      res.status(400);
+      throw new Error("Player is required");
+    }
+
+    if (!game) {
+      res.status(400);
+      throw new Error("Game is required");
+    }
+
+    if (!statType) {
+      res.status(400);
+      throw new Error("Stat type is required");
+    }
+
+    if (!line && line != 0) {
+      res.status(400);
+      throw new Error("Line is required");
+    }
+
     const pick: IPickDocument = await Pick.create({
       player,
       game,
@@ -61,16 +81,24 @@ const createPick = asyncHandler(
   }
 );
 
-// @desc    Get all available picks
+// @desc    Get all available picks for future games
 // @route   GET /api/picks
-// @access  Public
+// @access  Private/Admin
 const getPicks = asyncHandler(async (req: Request, res: Response) => {
+  const currentTime = new Date();
+
   const picks = await Pick.find({})
     .populate("player")
     .populate("game")
     .sort({ createdAt: -1 });
 
-  const response: PickResponse[] = picks.map((pick) => ({
+  // Filter picks to only include those with future games
+  const futurePicks = picks.filter((pick) => {
+    const gameStartTime = new Date((pick.game as any).startTime);
+    return gameStartTime > currentTime;
+  });
+
+  const response: PickResponse[] = futurePicks.map((pick) => ({
     _id: pick._id.toString(),
     player: {
       _id: (pick.player as any)._id.toString(),

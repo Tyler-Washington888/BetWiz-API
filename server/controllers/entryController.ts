@@ -169,14 +169,9 @@ const createEntry = asyncHandler(
 const getMyEntries = asyncHandler(async (req: Request, res: Response) => {
   const typedReq = req as AuthenticatedRequest;
 
-  if (!typedReq.user) {
-    res.status(401);
-    throw new Error("Not authorized");
-  }
-
   const entries = await Entry.find({ user: typedReq.user._id })
     .populate({
-      path: "picks",
+      path: "picks.pick",
       populate: [
         { path: "player", model: "Player" },
         { path: "game", model: "Game" },
@@ -234,14 +229,9 @@ const getEntryById = asyncHandler(async (req: Request, res: Response) => {
   const typedReq = req as AuthenticatedRequest;
   const { id } = req.params;
 
-  if (!typedReq.user) {
-    res.status(401);
-    throw new Error("Not authorized");
-  }
-
   const entry = await Entry.findById(id)
     .populate({
-      path: "picks",
+      path: "picks.pick",
       populate: [
         { path: "player", model: "Player" },
         { path: "game", model: "Game" },
@@ -252,12 +242,6 @@ const getEntryById = asyncHandler(async (req: Request, res: Response) => {
   if (!entry) {
     res.status(404);
     throw new Error("Entry not found");
-  }
-
-  // Check if user owns this entry
-  if (entry.user.toString() !== typedReq.user._id.toString()) {
-    res.status(403);
-    throw new Error("Access denied");
   }
 
   const response: EntryResponse = {

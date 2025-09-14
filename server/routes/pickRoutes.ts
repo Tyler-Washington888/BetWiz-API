@@ -5,12 +5,15 @@ import {
   getPickById,
   deletePick,
 } from "../controllers/pickController";
-import { adminOnly } from "../middleware/authMiddleware";
+import { protect, adminOnly } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
-router.route("/").get(getPicks).post(adminOnly, createPick);
+router.route("/").get(protect, getPicks).post(protect, adminOnly, createPick);
 
-router.route("/:id").get(adminOnly, getPickById).delete(adminOnly, deletePick);
+router
+  .route("/:id")
+  .get(protect, getPickById)
+  .delete(protect, adminOnly, deletePick);
 
 export default router;

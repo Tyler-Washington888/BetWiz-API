@@ -15,22 +15,39 @@ const createGame = asyncHandler(
   async (req: Request, res: Response<GameResponse>) => {
     const { homeTeam, awayTeam, startTime }: CreateGameRequest = req.body;
 
-    const game: IGameDocument = await Game.create({
-      homeTeam,
-      awayTeam,
-      startTime: new Date(startTime),
-    });
+    if (!startTime) {
+      res.status(400);
+      throw new Error("Start time is required");
+    }
 
-    const response: GameResponse = {
-      _id: game._id.toString(),
-      homeTeam: game.homeTeam,
-      awayTeam: game.awayTeam,
-      startTime: game.startTime,
-      createdAt: game.createdAt,
-      updatedAt: game.updatedAt,
-    };
+    let game: IGameDocument;
+    try {
+      game = await Game.create({
+        homeTeam,
+        awayTeam,
+        startTime: startTime, // Pass the original string, not the Date object
+      });
 
-    res.status(201).json(response);
+      const response: GameResponse = {
+        _id: game._id.toString(),
+        homeTeam: game.homeTeam,
+        awayTeam: game.awayTeam,
+        startTime: game.startTime,
+        createdAt: game.createdAt,
+        updatedAt: game.updatedAt,
+      };
+
+      res.status(201).json(response);
+    } catch (error: any) {
+      // Handle unique constraint violation
+      if (error.code === 11000) {
+        res.status(400);
+        throw new Error(
+          "Game already exists with the same teams and start time"
+        );
+      }
+      throw error;
+    }
   }
 );
 
@@ -84,7 +101,7 @@ const updateGame = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { homeTeam, awayTeam, startTime } = req.body;
 
-  const game = await Game.findById(id);
+  const game: IGameDocument | null = await Game.findById(id);
 
   if (!game) {
     res.status(404);
@@ -93,7 +110,7 @@ const updateGame = asyncHandler(async (req: Request, res: Response) => {
 
   if (homeTeam) game.homeTeam = homeTeam;
   if (awayTeam) game.awayTeam = awayTeam;
-  if (startTime) game.startTime = new Date(startTime);
+  if (startTime) game.startTime = startTime;
 
   const updatedGame = await game.save();
 

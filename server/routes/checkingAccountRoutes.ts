@@ -26,26 +26,12 @@ router.put("/increase-balance", protect, increaseBalance);
 // @access  Private
 router.delete("/delete-my-checking-account", protect, deleteCheckingAccount);
 
-// ADMIN ROUTES (Protected by authentication + admin privileges)
+// @route   POST /api/checking-account/admin/increase-promo-balance/:email
+// @desc    Increase promo balance
+router.put("/increase-promo-balance/:email", increasePromoBalance);
 
-// @route   POST /api/checking-account/admin/increase-promo-balance/:userId
-// @desc    Increase promo balance (Admin only)
-// @access  Private/Admin
-router.put(
-  "/admin/increase-promo-balance/:userId",
-  protect,
-  adminOnly,
-  increasePromoBalance
-);
-
-// @route   POST /api/checking-account/admin/decrease-promo-balance/:userId
-// @desc    Decrease promo balance (Admin only)
-// @access  Private/Admin
-router.put(
-  "/admin/decrease-promo-balance/:userId",
-  protect,
-  adminOnly,
-  decreasePromoBalance
-);
+// @route   POST /api/checking-account/admin/decrease-promo-balance/:email
+// @desc    Decrease promo balance
+router.put("/decrease-promo-balance/:email", decreasePromoBalance);
 
 export default router;

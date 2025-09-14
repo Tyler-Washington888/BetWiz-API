@@ -47,8 +47,8 @@ export enum NBATeam {
 // Game interfaces
 export interface IGame {
   _id: string;
-  homeTeam: string;
-  awayTeam: string;
+  homeTeam: NBATeam;
+  awayTeam: NBATeam;
   startTime: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -56,8 +56,8 @@ export interface IGame {
 
 export interface IGameDocument extends Document {
   _id: Types.ObjectId;
-  homeTeam: string;
-  awayTeam: string;
+  homeTeam: NBATeam;
+  awayTeam: NBATeam;
   startTime: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -145,8 +145,8 @@ export interface IEntryDocument extends Document {
 
 // Request interfaces
 export interface CreateGameRequest {
-  homeTeam: string;
-  awayTeam: string;
+  homeTeam: NBATeam;
+  awayTeam: NBATeam;
   startTime: string;
 }
 
@@ -180,8 +180,8 @@ export interface CreateEntryRequest {
 // Response interfaces
 export interface GameResponse {
   _id: string;
-  homeTeam: string;
-  awayTeam: string;
+  homeTeam: NBATeam;
+  awayTeam: NBATeam;
   startTime: Date;
   createdAt: Date;
   updatedAt: Date;

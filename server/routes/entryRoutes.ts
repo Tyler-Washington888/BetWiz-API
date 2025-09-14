@@ -10,6 +10,6 @@ const router = express.Router();
 
 router.post("/", protect, createEntry);
 router.get("/my-entries", protect, getMyEntries);
-router.get("/:id", protect, getEntryById);
+router.get("/my-entries/:id", protect, getEntryById);
 
 export default router;

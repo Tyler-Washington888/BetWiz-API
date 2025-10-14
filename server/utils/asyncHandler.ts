@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 
-// Custom async handler that preserves our types
 export const asyncHandler = <
   TReq extends Request = Request,
   TRes extends Response = Response

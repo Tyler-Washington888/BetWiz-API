@@ -8,20 +8,8 @@ import {
   IEntryDocument,
 } from "@/interfaces/betting";
 import { AuthenticatedRequest } from "@/interfaces/user";
-import { decreaseBalanceByType } from "./checkingAccountController";
-
-// Helper function to calculate payout multiplier based on picks count (power only)
-const calculatePayoutMultiplier = (pickCount: number): number => {
-  const powerMultipliers: { [key: number]: number } = {
-    2: 2.5,
-    3: 4,
-    4: 8,
-    5: 15,
-    6: 40,
-  };
-
-  return powerMultipliers[pickCount] || 1;
-};
+import { decreaseBalanceByUserId } from "./checkingAccountController";
+import { publishEntryToSNS } from "../services/snsService";
 
 // @desc    Create a new entry (place bet)
 // @route   POST /api/entries
@@ -29,13 +17,7 @@ const calculatePayoutMultiplier = (pickCount: number): number => {
 const createEntry = asyncHandler(
   async (req: Request, res: Response<EntryResponse>) => {
     const typedReq = req as AuthenticatedRequest;
-    const { picks, wagerAmount, betType, balanceType }: CreateEntryRequest =
-      req.body;
-
-    if (!balanceType) {
-      res.status(400);
-      throw new Error("Balance type is required");
-    }
+    const { picks, wagerAmount, betType }: CreateEntryRequest = req.body;
 
     if (!wagerAmount) {
       res.status(400);
@@ -69,11 +51,7 @@ const createEntry = asyncHandler(
 
     try {
       // Deduct wager amount from user's balance
-      await decreaseBalanceByType(
-        typedReq.user._id.toString(),
-        wagerAmount,
-        balanceType
-      );
+      await decreaseBalanceByUserId(typedReq.user._id.toString(), wagerAmount);
 
       // Create the entry with picks and selections
       const entryPicks = picks.map((p) => ({
@@ -85,7 +63,6 @@ const createEntry = asyncHandler(
         user: typedReq.user._id,
         picks: entryPicks,
         wagerAmount,
-        balanceType,
         payoutMultiplier,
         betType,
       });
@@ -118,6 +95,7 @@ const createEntry = asyncHandler(
               lastName: entryPick.pick.player.lastName,
               team: entryPick.pick.player.team,
               position: entryPick.pick.player.position,
+              imageUrl: entryPick.pick.player.imageUrl,
               createdAt: entryPick.pick.player.createdAt,
               updatedAt: entryPick.pick.player.updatedAt,
             },
@@ -137,7 +115,6 @@ const createEntry = asyncHandler(
           selection: entryPick.selection,
         })),
         wagerAmount: populatedEntry.wagerAmount,
-        balanceType: populatedEntry.balanceType,
         payoutMultiplier: populatedEntry.payoutMultiplier,
         potentialPayout:
           populatedEntry.wagerAmount * populatedEntry.payoutMultiplier,
@@ -147,13 +124,21 @@ const createEntry = asyncHandler(
         updatedAt: populatedEntry.updatedAt,
       };
 
-      // TODO: Send entry event to Lambda function for Bet360 consumption
-      // This should trigger a Lambda function that will format and send the entry data to Bet360
-      console.log("📊 NEW ENTRY CREATED - Send to Lambda:", {
-        ...response, // Complete entry data including all picks with player/game details
+      // Publish entry to SNS for Bet360 processing
+      const userId = typedReq.user._id.toString();
+      const userEmail = typedReq.user.email;
+      const sportsbook = "bet360";
+
+      const snsPayload = {
+        ...response,
+        userId,
+        userEmail,
+        sportsbook,
         timestamp: new Date().toISOString(),
         event: "ENTRY_CREATED",
-      });
+      };
+
+      publishEntryToSNS(snsPayload);
 
       res.status(201).json(response);
     } catch (error) {
@@ -163,128 +148,17 @@ const createEntry = asyncHandler(
   }
 );
 
-// @desc    Get user's entries
-// @route   GET /api/entries/my-entries
-// @access  Private
-const getMyEntries = asyncHandler(async (req: Request, res: Response) => {
-  const typedReq = req as AuthenticatedRequest;
-
-  const entries = await Entry.find({ user: typedReq.user._id })
-    .populate({
-      path: "picks.pick",
-      populate: [
-        { path: "player", model: "Player" },
-        { path: "game", model: "Game" },
-      ],
-    })
-    .sort({ createdAt: -1 });
-
-  const response: EntryResponse[] = entries.map((entry) => ({
-    _id: entry._id.toString(),
-    user: entry.user.toString(),
-    picks: entry.picks.map((entryPick: any) => ({
-      pick: {
-        _id: entryPick.pick._id.toString(),
-        player: {
-          _id: entryPick.pick.player._id.toString(),
-          firstName: entryPick.pick.player.firstName,
-          lastName: entryPick.pick.player.lastName,
-          team: entryPick.pick.player.team,
-          position: entryPick.pick.player.position,
-          createdAt: entryPick.pick.player.createdAt,
-          updatedAt: entryPick.pick.player.updatedAt,
-        },
-        game: {
-          _id: entryPick.pick.game._id.toString(),
-          homeTeam: entryPick.pick.game.homeTeam,
-          awayTeam: entryPick.pick.game.awayTeam,
-          startTime: entryPick.pick.game.startTime,
-          createdAt: entryPick.pick.game.createdAt,
-          updatedAt: entryPick.pick.game.updatedAt,
-        },
-        statType: entryPick.pick.statType,
-        line: entryPick.pick.line,
-        createdAt: entryPick.pick.createdAt,
-        updatedAt: entryPick.pick.updatedAt,
-      },
-      selection: entryPick.selection,
-    })),
-    wagerAmount: entry.wagerAmount,
-    balanceType: entry.balanceType,
-    payoutMultiplier: entry.payoutMultiplier,
-    potentialPayout: entry.wagerAmount * entry.payoutMultiplier,
-    betType: entry.betType,
-    status: entry.status,
-    createdAt: entry.createdAt,
-    updatedAt: entry.updatedAt,
-  }));
-
-  res.json(response);
-});
-
-// @desc    Get entry by ID
-// @route   GET /api/entries/:id
-// @access  Private
-const getEntryById = asyncHandler(async (req: Request, res: Response) => {
-  const typedReq = req as AuthenticatedRequest;
-  const { id } = req.params;
-
-  const entry = await Entry.findById(id)
-    .populate({
-      path: "picks.pick",
-      populate: [
-        { path: "player", model: "Player" },
-        { path: "game", model: "Game" },
-      ],
-    })
-    .exec();
-
-  if (!entry) {
-    res.status(404);
-    throw new Error("Entry not found");
-  }
-
-  const response: EntryResponse = {
-    _id: entry._id.toString(),
-    user: entry.user.toString(),
-    picks: entry.picks.map((entryPick: any) => ({
-      pick: {
-        _id: entryPick.pick._id.toString(),
-        player: {
-          _id: entryPick.pick.player._id.toString(),
-          firstName: entryPick.pick.player.firstName,
-          lastName: entryPick.pick.player.lastName,
-          team: entryPick.pick.player.team,
-          position: entryPick.pick.player.position,
-          createdAt: entryPick.pick.player.createdAt,
-          updatedAt: entryPick.pick.player.updatedAt,
-        },
-        game: {
-          _id: entryPick.pick.game._id.toString(),
-          homeTeam: entryPick.pick.game.homeTeam,
-          awayTeam: entryPick.pick.game.awayTeam,
-          startTime: entryPick.pick.game.startTime,
-          createdAt: entryPick.pick.game.createdAt,
-          updatedAt: entryPick.pick.game.updatedAt,
-        },
-        statType: entryPick.pick.statType,
-        line: entryPick.pick.line,
-        createdAt: entryPick.pick.createdAt,
-        updatedAt: entryPick.pick.updatedAt,
-      },
-      selection: entryPick.selection,
-    })),
-    wagerAmount: entry.wagerAmount,
-    balanceType: entry.balanceType,
-    payoutMultiplier: entry.payoutMultiplier,
-    potentialPayout: entry.wagerAmount * entry.payoutMultiplier,
-    betType: entry.betType,
-    status: entry.status,
-    createdAt: entry.createdAt,
-    updatedAt: entry.updatedAt,
+// Helper function to calculate payout multiplier based on picks count (power only)
+const calculatePayoutMultiplier = (pickCount: number): number => {
+  const powerMultipliers: { [key: number]: number } = {
+    2: 2.5,
+    3: 4,
+    4: 8,
+    5: 15,
+    6: 40,
   };
 
-  res.json(response);
-});
+  return powerMultipliers[pickCount] || 1;
+};
 
-export { createEntry, getMyEntries, getEntryById };
+export { createEntry };

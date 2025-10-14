@@ -24,7 +24,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "baseUrl": "./",
-    "typeRoots": ["./node_modules/@types", "./types"],
+    "typeRoots": ["./node_modules/@types", "server/types"],
     "paths": {
       "@/*": ["server/*"],
       "@/interfaces/*": ["server/interfaces/*/index.ts", "server/interfaces/*"],
@@ -35,6 +35,6 @@
       "@/config/*": ["server/config/*"]
     }
   },
-  "include": ["server/**/*", "*.ts", "types/**/*"],
+  "include": ["server/**/*", "*.ts", "server/types/**/*"],
   "exclude": ["node_modules", "dist", "test", "**/*.spec.ts", "**/*.test.ts"]
 }

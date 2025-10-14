@@ -1,8 +1,6 @@
 import { Document, Types } from "mongoose";
-import { Request } from "express";
-import { IUserDocument } from "../user";
 
-// Enums
+// ====== ENUMS ======
 export enum PlayerPosition {
   PG = "PG",
   SG = "SG",
@@ -44,32 +42,12 @@ export enum NBATeam {
   WAS = "Washington Wizards",
 }
 
-// Game interfaces
-export interface IGame {
-  _id: string;
-  homeTeam: NBATeam;
-  awayTeam: NBATeam;
-  startTime: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
+// ====== MONGOOSE DOCUMENT INTERFACES ======
 export interface IGameDocument extends Document {
   _id: Types.ObjectId;
   homeTeam: NBATeam;
   awayTeam: NBATeam;
   startTime: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Player interfaces
-export interface IPlayer {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  team: NBATeam;
-  position: PlayerPosition;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -80,17 +58,7 @@ export interface IPlayerDocument extends Document {
   lastName: string;
   team: NBATeam;
   position: PlayerPosition;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Pick interfaces
-export interface IPick {
-  _id: string;
-  player: string;
-  game: string;
-  statType: string;
-  line: number;
+  imageUrl: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -105,29 +73,9 @@ export interface IPickDocument extends Document {
   updatedAt: Date;
 }
 
-// Entry pick with selection
-export interface IEntryPick {
-  pick: string;
-  selection: "over" | "under";
-}
-
 export interface IEntryPickDocument {
   pick: Types.ObjectId;
   selection: "over" | "under";
-}
-
-// Entry interfaces
-export interface IEntry {
-  _id: string;
-  user: string;
-  picks: IEntryPick[];
-  wagerAmount: number;
-  balanceType: "regular" | "promo";
-  payoutMultiplier: number;
-  betType: "power";
-  status: "pending" | "won" | "lost";
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface IEntryDocument extends Document {
@@ -135,7 +83,6 @@ export interface IEntryDocument extends Document {
   user: Types.ObjectId;
   picks: IEntryPickDocument[];
   wagerAmount: number;
-  balanceType: "regular" | "promo";
   payoutMultiplier: number;
   betType: "power";
   status: "pending" | "won" | "lost";
@@ -143,28 +90,7 @@ export interface IEntryDocument extends Document {
   updatedAt: Date;
 }
 
-// Request interfaces
-export interface CreateGameRequest {
-  homeTeam: NBATeam;
-  awayTeam: NBATeam;
-  startTime: string;
-}
-
-export interface CreatePlayerRequest {
-  firstName: string;
-  lastName: string;
-  team: NBATeam;
-  position: PlayerPosition;
-}
-
-export interface CreatePickRequest {
-  player: string;
-  game: string;
-  statType: string;
-  line: number;
-}
-
-// Entry pick with user's selection
+// ====== API REQUEST INTERFACES ======
 export interface EntryPickRequest {
   pickId: string;
   selection: "over" | "under";
@@ -174,10 +100,9 @@ export interface CreateEntryRequest {
   picks: EntryPickRequest[];
   wagerAmount: number;
   betType: "power";
-  balanceType: "regular" | "promo";
 }
 
-// Response interfaces
+// ====== API RESPONSE INTERFACES ======
 export interface GameResponse {
   _id: string;
   homeTeam: NBATeam;
@@ -193,6 +118,7 @@ export interface PlayerResponse {
   lastName: string;
   team: NBATeam;
   position: PlayerPosition;
+  imageUrl: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -217,16 +143,10 @@ export interface EntryResponse {
   user: string;
   picks: EntryPickResponse[];
   wagerAmount: number;
-  balanceType: "regular" | "promo";
   payoutMultiplier: number;
-  potentialPayout: number;
   betType: "power";
+  potentialPayout: number;
   status: "pending" | "won" | "lost";
   createdAt: Date;
   updatedAt: Date;
-}
-
-// Betting authenticated request
-export interface BettingAuthenticatedRequest extends Request {
-  user: IUserDocument;
 }

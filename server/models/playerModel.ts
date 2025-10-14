@@ -29,6 +29,11 @@ const playerSchema = new Schema<IPlayerDocument>(
       enum: Object.values(PlayerPosition),
       trim: true,
     },
+    imageUrl: {
+      type: String,
+      required: [true, "Player image URL is required"],
+      trim: true,
+    },
   },
   {
     timestamps: true,

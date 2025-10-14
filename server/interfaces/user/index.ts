@@ -1,13 +1,13 @@
 import { Document } from "mongoose";
 import { Request } from "express";
 
-// User role enum
+// ====== ENUMS ======
 export enum UserRole {
   USER = "user",
   ADMIN = "admin",
 }
 
-// User document interface (with password and methods)
+// ====== MONGOOSE DOCUMENT INTERFACE ======
 export interface IUserDocument extends Document {
   _id: string;
   firstname: string;
@@ -22,48 +22,51 @@ export interface IUserDocument extends Document {
   matchPassword(enteredPassword: string): Promise<boolean>;
 }
 
-// User registration request interface
-export interface RegisterUserRequest {
+// ====== REQUEST INTERFACES ======
+export interface SignUpRequest {
   firstname: string;
   lastname: string;
   email: string;
   password: string;
-  dateOfBirth: string; // MM-DD-YYYY format
-  linkedBet360Account?: boolean;
+  dateOfBirth: string;
+  role?: UserRole;
 }
 
-// User login request interface
-export interface LoginUserRequest {
+export interface LoginRequest {
   email: string;
   password: string;
 }
 
-// User registration response interface
-export interface RegisterUserResponse {
+export interface AuthenticatedRequest extends Request {
+  user: IUserDocument;
+}
+
+// ====== RESPONSE INTERFACES ======
+export interface SignUpResponse {
   _id: string;
   firstname: string;
   lastname: string;
   email: string;
   dateOfBirth: string;
-  linkedBet360Account: boolean;
   token: string;
-  role: string;
+  role: UserRole;
+  linkedBet360Account: boolean;
+  creditBalance: number;
 }
 
-// User login response interface
-export interface LoginUserResponse {
+export interface LoginResponse {
   _id: string;
   firstname: string;
   lastname: string;
   email: string;
   dateOfBirth: string;
-  linkedBet360Account: boolean;
   token: string;
   role: string;
+  linkedBet360Account: boolean;
+  creditBalance: number;
 }
 
-// User profile response interface (without sensitive data)
-export interface UserProfileResponse {
+export interface ProfileResponse {
   _id: string;
   firstname: string;
   lastname: string;
@@ -71,24 +74,7 @@ export interface UserProfileResponse {
   dateOfBirth: string;
   linkedBet360Account: boolean;
   role: UserRole;
+  creditBalance: number;
   createdAt: Date;
   updatedAt: Date;
-}
-
-// User-specific authenticated request interface
-export interface UserAuthenticatedRequest<TBody = any> extends Request {
-  user: IUserDocument;
-  body: TBody;
-}
-
-// Extended Request interface with user
-export interface AuthenticatedRequest extends Request {
-  user: IUserDocument;
-}
-
-// JWT payload interface
-export interface JWTPayload {
-  id: string;
-  iat?: number;
-  exp?: number;
 }

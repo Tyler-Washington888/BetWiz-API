@@ -1,19 +1,16 @@
 import mongoose from "mongoose";
 
-const connectDB = async (): Promise<void> => {
+const connectToDatabase = async (): Promise<void> => {
   try {
-    const mongoUri =
-      process.env.MONGO_URI || "mongodb://localhost:27017/betwiz";
-
-    const conn = await mongoose.connect(mongoUri);
+    const conn = await mongoose.connect(process.env.MONGO_URI || "");
 
     console.log(
-      `✅ MongoDB Connected: ${conn.connection.host}`.cyan.underline.bold
+      ` MongoDB Connected: ${conn.connection.host}`.cyan.underline.bold
     );
   } catch (error) {
-    console.log(`❌ Error: ${(error as Error).message}`.red.underline.bold);
+    console.log(`Error: ${(error as Error).message}`.red.underline.bold);
     process.exit(1);
   }
 };
 
-export default connectDB;
+export default connectToDatabase;

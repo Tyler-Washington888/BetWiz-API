@@ -3,34 +3,39 @@ import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel";
 import {
-  RegisterUserResponse,
-  LoginUserRequest,
-  LoginUserResponse,
-  UserProfileResponse,
-  JWTPayload,
+  LoginRequest,
+  LoginResponse,
+  ProfileResponse,
   IUserDocument,
+  SignUpResponse,
+  SignUpRequest,
+  AuthenticatedRequest,
 } from "../interfaces/user";
 import {
   createCheckingAccountForUser,
-  deleteCheckingAccountForUser,
-  increasePromoBalanceByUserId,
+  getCheckingAccountByUserId,
 } from "./checkingAccountController";
-import { AuthenticatedRequest } from "@/interfaces/user";
+import { JWTPayload } from "../interfaces/jwt";
 
-// @desc    Register new user
-// @route   POST /api/users/register
+// @desc    Register user
+// @route   POST /api/users/signup
 // @access  Public
-const registerUser = asyncHandler(
-  async (req: Request, res: Response<RegisterUserResponse>) => {
-    const { firstname, lastname, email, password, dateOfBirth, role } =
-      req.body;
+const signUp = asyncHandler(
+  async (req: Request, res: Response<SignUpResponse>) => {
+    const {
+      firstname,
+      lastname,
+      email,
+      password,
+      dateOfBirth,
+      role,
+    }: SignUpRequest = req.body;
 
     if (!email) {
       res.status(400);
       throw new Error("Email is required");
     }
 
-    // Check if user exists
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -38,7 +43,6 @@ const registerUser = asyncHandler(
       throw new Error("User already exists");
     }
 
-    // Create user
     const user: IUserDocument = await User.create({
       firstname,
       lastname,
@@ -49,17 +53,19 @@ const registerUser = asyncHandler(
     });
 
     if (user) {
-      await createCheckingAccountForUser(user._id.toString());
+      const userIdToString = user._id.toString();
+      await createCheckingAccountForUser(userIdToString);
 
-      const response: RegisterUserResponse = {
-        _id: user._id.toString(),
+      const response: SignUpResponse = {
+        _id: userIdToString,
         firstname: user.firstname,
         lastname: user.lastname,
         email: user.email,
         dateOfBirth: user.dateOfBirth,
         linkedBet360Account: user.linkedBet360Account,
+        creditBalance: 0,
         role: user.role,
-        token: generateToken(user._id.toString()),
+        token: generateJsonWebToken(userIdToString),
       };
 
       res.status(201).json(response);
@@ -70,12 +76,12 @@ const registerUser = asyncHandler(
   }
 );
 
-// @desc    Authenticate a user
+// @desc    Authenticate  user
 // @route   POST /api/users/login
 // @access  Public
-const loginUser = asyncHandler(
-  async (req: Request, res: Response<LoginUserResponse>) => {
-    const { email, password }: LoginUserRequest = req.body;
+const login = asyncHandler(
+  async (req: Request, res: Response<LoginResponse>) => {
+    const { email, password }: LoginRequest = req.body;
 
     if (!email) {
       res.status(400);
@@ -87,19 +93,22 @@ const loginUser = asyncHandler(
       throw new Error("Password is required");
     }
 
-    // Check for user email
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
-      const response: LoginUserResponse = {
-        _id: user._id.toString(),
+      const userIdToString = user._id.toString();
+      const checkingAccount = await getCheckingAccountByUserId(userIdToString);
+
+      const response: LoginResponse = {
+        _id: userIdToString,
         firstname: user.firstname,
         lastname: user.lastname,
         email: user.email,
         dateOfBirth: user.dateOfBirth,
         linkedBet360Account: user.linkedBet360Account,
+        creditBalance: checkingAccount?.balance || 0,
         role: user.role,
-        token: generateToken(user._id.toString()),
+        token: generateJsonWebToken(userIdToString),
       };
 
       res.json(response);
@@ -110,11 +119,11 @@ const loginUser = asyncHandler(
   }
 );
 
-// @desc    Get user data
-// @route   GET /api/users/my-data
+// @desc    Get user profile data
+// @route   GET /api/users/profile
 // @access  Private
-const getMyData = asyncHandler(
-  async (req: Request, res: Response<UserProfileResponse>) => {
+const getProfile = asyncHandler(
+  async (req: Request, res: Response<ProfileResponse>) => {
     const typedReq = req as AuthenticatedRequest;
 
     const user: IUserDocument | null = await User.findById(
@@ -126,13 +135,18 @@ const getMyData = asyncHandler(
       throw new Error("User not found");
     }
 
-    const response: UserProfileResponse = {
-      _id: user._id.toString(),
+    const userIdToString = user._id.toString();
+
+    const checkingAccount = await getCheckingAccountByUserId(userIdToString);
+
+    const response: ProfileResponse = {
+      _id: userIdToString,
       firstname: user.firstname,
       lastname: user.lastname,
       email: user.email,
       dateOfBirth: user.dateOfBirth,
       linkedBet360Account: user.linkedBet360Account,
+      creditBalance: checkingAccount?.balance || 0,
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
@@ -141,29 +155,6 @@ const getMyData = asyncHandler(
     res.status(200).json(response);
   }
 );
-
-// @desc    Delete user and associated checking account
-// @route   DELETE /api/users/delete
-// @access  Private
-const deleteUser = asyncHandler(async (req: Request, res: Response) => {
-  const typedReq = req as AuthenticatedRequest;
-  const userId = typedReq.user._id.toString();
-
-  try {
-    // First delete the checking account
-    await deleteCheckingAccountForUser(userId);
-
-    // Then delete the user
-    await User.findByIdAndDelete(userId);
-
-    res.status(200).json({
-      message: "User and associated checking account successfully deleted",
-    });
-  } catch (error) {
-    res.status(400);
-    throw new Error(`Failed to delete user: ${(error as Error).message}`);
-  }
-});
 
 // @desc    Acknowledge that user's Betwiz account is linked to Bet360 and add $20 promo bonus
 // @route   POST /api/users/:userId/acknowledge-betwiz-bet360-link
@@ -185,7 +176,8 @@ const acknowledgeBetwizBet360Link = asyncHandler(
         throw new Error("User not found");
       }
 
-      // Check if already acknowledged
+      const userIdToString = user._id.toString();
+
       if (user.linkedBet360Account) {
         res.status(400);
         throw new Error(
@@ -193,26 +185,22 @@ const acknowledgeBetwizBet360Link = asyncHandler(
         );
       }
 
-      // Update user to set linkedBet360Account to true
       user.linkedBet360Account = true;
       await user.save();
 
-      // Add $20 to promo balance
-      const updatedCheckingAccount = await increasePromoBalanceByUserId(
-        user._id.toString(),
-        20
-      );
+      const checkingAccount = await getCheckingAccountByUserId(userIdToString);
 
       res.status(200).json({
-        message: "Betwiz-Bet360 link acknowledged and $20 promo bonus added",
+        message:
+          "Betwiz-Bet360 link acknowledged and $20 bonus added to balance",
         user: {
-          _id: user._id.toString(),
+          _id: userIdToString,
           firstname: user.firstname,
           lastname: user.lastname,
           email: user.email,
           linkedBet360Account: user.linkedBet360Account,
         },
-        promoBalance: updatedCheckingAccount.promoBalance,
+        balance: checkingAccount?.balance || 0,
       });
     } catch (error) {
       res.status(400);
@@ -224,7 +212,7 @@ const acknowledgeBetwizBet360Link = asyncHandler(
 );
 
 // Generate JWT
-const generateToken = (id: string): string => {
+const generateJsonWebToken = (id: string): string => {
   const secret = process.env.JWT_SECRET;
 
   if (!secret) {
@@ -238,23 +226,4 @@ const generateToken = (id: string): string => {
   });
 };
 
-// @desc    Get user by email (utility function)
-// @param   email - User's email address
-// @returns User document or null if not found
-const getUserByEmail = async (email: string): Promise<IUserDocument | null> => {
-  if (!email) {
-    throw new Error("Email is required");
-  }
-
-  const user = await User.findOne({ email });
-  return user;
-};
-
-export {
-  registerUser,
-  loginUser,
-  getMyData,
-  deleteUser,
-  acknowledgeBetwizBet360Link,
-  getUserByEmail,
-};
+export { signUp, login, getProfile, acknowledgeBetwizBet360Link };

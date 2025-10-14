@@ -1,13 +1,11 @@
 import { Types, Document } from "mongoose";
 import { AuthenticatedRequest } from "@/interfaces/user";
 
-// Checking Account document interface (with methods)
+// ====== MONGOOSE DOCUMENT INTERFACE ======
 export interface ICheckingAccountDocument extends Document {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
   balance: number;
-  promoBalance: number;
-  totalBalance: number; // Virtual field
   isActive: boolean;
   lastTransaction: Date | null;
   createdAt: Date;
@@ -15,33 +13,18 @@ export interface ICheckingAccountDocument extends Document {
 
   // Methods
   increaseBalance(amount: number): Promise<ICheckingAccountDocument>;
-  increasePromoBalance(amount: number): Promise<ICheckingAccountDocument>;
   decreaseBalance(amount: number): Promise<ICheckingAccountDocument>;
-  decreasePromoBalance(amount: number): Promise<ICheckingAccountDocument>;
 }
 
-// Authenticated request interface for deposit operations
-export interface checkingAccountRequest extends AuthenticatedRequest {
-  params: { userId?: string; email?: string };
+// ====== REQUEST INTERFACES ======
+export interface DepositRequest extends AuthenticatedRequest {
   body: { amount?: number };
 }
 
-// Checking account response interface (full details)
-export interface CheckingAccountResponse {
-  _id: string;
-  userId: string;
-  balance: number;
-  promoBalance: number;
-  lastTransaction: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Transaction result interface
-export interface TransactionResult {
+// ====== RESPONSE INTERFACES ======
+export interface DepositResponse {
   success: boolean;
   balance: number;
-  promoBalance: number;
   lastTransaction: Date | null;
   lastTransactionAmount?: number;
   message: string;

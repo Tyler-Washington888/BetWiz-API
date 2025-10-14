@@ -27,11 +27,6 @@ const entrySchema = new Schema<IEntryDocument>(
       required: [true, "Wager amount is required"],
       min: [1, "Minimum wager is $1"],
     },
-    balanceType: {
-      type: String,
-      required: [true, "Balance type is required"],
-      enum: ["regular", "promo"],
-    },
     payoutMultiplier: {
       type: Number,
       required: [true, "Payout multiplier is required"],

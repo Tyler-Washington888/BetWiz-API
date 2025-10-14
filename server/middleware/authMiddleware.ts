@@ -2,7 +2,8 @@ import jwt from "jsonwebtoken";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Request, Response, NextFunction } from "express";
 import User from "../models/userModel";
-import { IUserDocument, JWTPayload, UserRole } from "../interfaces/user";
+import { IUserDocument, UserRole } from "../interfaces/user";
+import { JWTPayload } from "../interfaces/jwt";
 import { AuthenticatedRequest } from "@/interfaces/user";
 
 const protect = asyncHandler(
@@ -14,10 +15,8 @@ const protect = asyncHandler(
       req.headers.authorization.startsWith("Bearer")
     ) {
       try {
-        // Get token from header
         token = req.headers.authorization.split(" ")[1];
 
-        // Verify token
         const secret = process.env.JWT_SECRET;
         if (!secret) {
           throw new Error("JWT_SECRET is not defined");
@@ -25,7 +24,6 @@ const protect = asyncHandler(
 
         const decoded = jwt.verify(token, secret) as JWTPayload;
 
-        // Get user from the token
         const user: IUserDocument | null = await User.findById(
           decoded.id
         ).select("-password");
@@ -35,7 +33,6 @@ const protect = asyncHandler(
           throw new Error("Not authorized - user not found");
         }
 
-        // Attach user to request
         (req as AuthenticatedRequest).user = user;
 
         next();
@@ -53,7 +50,6 @@ const protect = asyncHandler(
   }
 );
 
-// @desc    Check if user is admin
 const adminOnly = asyncHandler<AuthenticatedRequest, Response>(
   async (req, res, next) => {
     if (req.user && req.user.role === UserRole.ADMIN) {

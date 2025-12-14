@@ -1,4 +1,5 @@
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
+import { SNSEntryData } from "../interfaces/betting";
 
 // Initialize SNS client
 const snsClient = new SNSClient({
@@ -8,7 +9,7 @@ const snsClient = new SNSClient({
 /**
  * Publish entry event to SNS topic for Bet360 processing
  */
-export async function publishEntryToSNS(entryData: any): Promise<void> {
+export async function publishEntryToSNS(entryData: SNSEntryData): Promise<void> {
   try {
     const message = JSON.stringify(entryData);
 

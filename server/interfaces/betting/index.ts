@@ -150,3 +150,12 @@ export interface EntryResponse {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// ====== SNS PAYLOAD INTERFACES ======
+export interface SNSEntryData extends EntryResponse {
+  userId: string;
+  userEmail: string;
+  sportsbook: string;
+  timestamp: string;
+  event: "ENTRY_CREATED";
+}

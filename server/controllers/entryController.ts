@@ -6,6 +6,7 @@ import {
   CreateEntryRequest,
   EntryResponse,
   IEntryDocument,
+  SNSEntryData,
 } from "@/interfaces/betting";
 import { AuthenticatedRequest } from "@/interfaces/user";
 import { decreaseBalanceByUserId } from "./checkingAccountController";
@@ -129,13 +130,13 @@ const createEntry = asyncHandler(
       const userEmail = typedReq.user.email;
       const sportsbook = "bet360";
 
-      const snsPayload = {
+      const snsPayload: SNSEntryData = {
         ...response,
         userId,
         userEmail,
         sportsbook,
         timestamp: new Date().toISOString(),
-        event: "ENTRY_CREATED",
+        event: "ENTRY_CREATED" as const,
       };
 
       publishEntryToSNS(snsPayload);

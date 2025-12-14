@@ -9,7 +9,9 @@ const snsClient = new SNSClient({
 /**
  * Publish entry event to SNS topic for Bet360 processing
  */
-export async function publishEntryToSNS(entryData: SNSEntryData): Promise<void> {
+export async function publishEntryToSNS(
+  entryData: SNSEntryData
+): Promise<void> {
   try {
     const message = JSON.stringify(entryData);
 

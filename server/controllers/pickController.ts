@@ -5,7 +5,7 @@ import { PickResponse } from "@/interfaces/betting";
 
 // @desc    Get all available picks for future games
 // @route   GET /api/picks
-// @access  Private/Admin
+// @access  Private
 const getPicks = asyncHandler(async (req: Request, res: Response) => {
   const currentTime = new Date();
 

@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Request, Response, NextFunction } from "express";
 import User from "../models/userModel";
-import { IUserDocument, UserRole } from "../interfaces/user";
+import { IUserDocument } from "../interfaces/user";
 import { JWTPayload } from "../interfaces/jwt";
 import { AuthenticatedRequest } from "@/interfaces/user";
 
@@ -37,7 +37,6 @@ const protect = asyncHandler(
 
         next();
       } catch (error) {
-        console.log(error);
         res.status(401);
         throw new Error("Not authorized");
       }
@@ -50,15 +49,4 @@ const protect = asyncHandler(
   }
 );
 
-const adminOnly = asyncHandler<AuthenticatedRequest, Response>(
-  async (req, res, next) => {
-    if (req.user && req.user.role === UserRole.ADMIN) {
-      next();
-    } else {
-      res.status(403);
-      throw new Error("Access denied. Admin privileges required.");
-    }
-  }
-);
-
-export { protect, adminOnly };
+export { protect };

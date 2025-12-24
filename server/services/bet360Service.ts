@@ -1,4 +1,4 @@
-const BET360_API_URL = process.env.BET360_API_URL || "http:
+const BET360_API_URL = process.env.BET360_API_URL || "http://localhost:5000";
 
 /**
  * Notify Bet360-API of subscription status change

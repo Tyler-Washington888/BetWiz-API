@@ -27,7 +27,7 @@ export const seedDatabase = async () => {
       lastName: "Dončić",
       team: "Los Angeles Lakers",
       position: "PG",
-      imageUrl: "https:
+      imageUrl: "https://cdn.nba.com/headshots/nba/latest/260x190/1629029.png",
     });
 
     const lebron = await Player.create({
@@ -35,7 +35,7 @@ export const seedDatabase = async () => {
       lastName: "James",
       team: "Los Angeles Lakers",
       position: "SF",
-      imageUrl: "https:
+      imageUrl: "https://cdn.nba.com/headshots/nba/latest/260x190/2544.png",
     });
 
     const jaylen = await Player.create({
@@ -43,7 +43,7 @@ export const seedDatabase = async () => {
       lastName: "Brown",
       team: "Boston Celtics",
       position: "SF",
-      imageUrl: "https:
+      imageUrl: "https://cdn.nba.com/headshots/nba/latest/260x190/1627759.png",
     });
 
     const jayson = await Player.create({
@@ -51,7 +51,7 @@ export const seedDatabase = async () => {
       lastName: "Tatum",
       team: "Boston Celtics",
       position: "SF",
-      imageUrl: "https:
+      imageUrl: "https://cdn.nba.com/headshots/nba/latest/260x190/1628369.png",
     });
 
     
@@ -60,7 +60,7 @@ export const seedDatabase = async () => {
       lastName: "Simons",
       team: "Boston Celtics",
       position: "PG",
-      imageUrl: "https:
+      imageUrl: "https://cdn.nba.com/headshots/nba/latest/260x190/1629014.png",
     });
 
     const austin = await Player.create({
@@ -68,7 +68,7 @@ export const seedDatabase = async () => {
       lastName: "Reaves",
       team: "Los Angeles Lakers",
       position: "SG",
-      imageUrl: "https:
+      imageUrl: "https://cdn.nba.com/headshots/nba/latest/260x190/1630559.png",
     });
 
     const deandre = await Player.create({
@@ -76,7 +76,7 @@ export const seedDatabase = async () => {
       lastName: "Ayton",
       team: "Los Angeles Lakers",
       position: "C",
-      imageUrl: "https:
+      imageUrl: "https://cdn.nba.com/headshots/nba/latest/260x190/1629028.png",
     });
 
     
@@ -142,7 +142,7 @@ export const seedDatabase = async () => {
     const bet360ClientSecret = process.env.BET360_CLIENT_SECRET || "bet360_client_secret";
     const bet360RedirectUri = process.env.BET360_UI_URL 
       ? `${process.env.BET360_UI_URL}/oauth/callback`
-      : "http:
+      : "http://localhost:5173/oauth/callback";
 
     
     let oauthClient = await OAuthClient.findOne({ clientId: bet360ClientId });

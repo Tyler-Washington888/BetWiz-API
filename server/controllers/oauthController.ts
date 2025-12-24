@@ -77,7 +77,7 @@ const authorize = asyncHandler(
     }
 
     if (!user) {
-      const BETWIZ_UI_URL = process.env.BETWIZ_UI_URL || "http:
+      const BETWIZ_UI_URL = process.env.BETWIZ_UI_URL || "http://localhost:5174";
       const loginUrl = new URL(`${BETWIZ_UI_URL}/login`);
 
       loginUrl.searchParams.set("oauth_redirect", "true");

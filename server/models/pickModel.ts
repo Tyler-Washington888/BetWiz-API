@@ -31,7 +31,7 @@ const pickSchema = new Schema<IPickDocument>(
   }
 );
 
-// Custom validator to ensure player is on one of the teams in the game and game hasn't started
+
 pickSchema.pre("validate", async function (next) {
   const player = await Player.findById(this.player);
   const game = await Game.findById(this.game);
@@ -50,7 +50,7 @@ pickSchema.pre("validate", async function (next) {
     );
   }
 
-  // Check if game has already started
+  
   if (game.startTime <= new Date()) {
     return next(
       new Error("Cannot create pick for a game that has already started")

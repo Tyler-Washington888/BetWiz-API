@@ -1,25 +1,33 @@
+import mongoose from "mongoose";
 import colors from "../config/colors";
 import Player from "../models/playerModel";
 import Game from "../models/gameModel";
 import Pick from "../models/pickModel";
 import Entry from "../models/entryModel";
+import OAuthClient from "../models/oauthClientModel";
 
-// Seed database with players, game, and picks - runs once on startup
+
 export const seedDatabase = async () => {
   try {
-    // Clear everything first
+    
+    if (mongoose.connection.readyState !== 1) {
+      console.log("⚠️  Database not connected, skipping seeding".yellow);
+      return;
+    }
+
+    
     await Entry.deleteMany({});
     await Pick.deleteMany({});
     await Game.deleteMany({});
     await Player.deleteMany({});
 
-    // Create players
+    
     const luka = await Player.create({
       firstName: "Luka",
       lastName: "Dončić",
       team: "Los Angeles Lakers",
       position: "PG",
-      imageUrl: "https://cdn.nba.com/headshots/nba/latest/260x190/1629029.png",
+      imageUrl: "https:
     });
 
     const lebron = await Player.create({
@@ -27,7 +35,7 @@ export const seedDatabase = async () => {
       lastName: "James",
       team: "Los Angeles Lakers",
       position: "SF",
-      imageUrl: "https://cdn.nba.com/headshots/nba/latest/260x190/2544.png",
+      imageUrl: "https:
     });
 
     const jaylen = await Player.create({
@@ -35,7 +43,7 @@ export const seedDatabase = async () => {
       lastName: "Brown",
       team: "Boston Celtics",
       position: "SF",
-      imageUrl: "https://cdn.nba.com/headshots/nba/latest/260x190/1627759.png",
+      imageUrl: "https:
     });
 
     const jayson = await Player.create({
@@ -43,16 +51,16 @@ export const seedDatabase = async () => {
       lastName: "Tatum",
       team: "Boston Celtics",
       position: "SF",
-      imageUrl: "https://cdn.nba.com/headshots/nba/latest/260x190/1628369.png",
+      imageUrl: "https:
     });
 
-    // Add three more players
+    
     const anfernee = await Player.create({
       firstName: "Anfernee",
       lastName: "Simons",
       team: "Boston Celtics",
       position: "PG",
-      imageUrl: "https://cdn.nba.com/headshots/nba/latest/260x190/1629014.png",
+      imageUrl: "https:
     });
 
     const austin = await Player.create({
@@ -60,7 +68,7 @@ export const seedDatabase = async () => {
       lastName: "Reaves",
       team: "Los Angeles Lakers",
       position: "SG",
-      imageUrl: "https://cdn.nba.com/headshots/nba/latest/260x190/1630559.png",
+      imageUrl: "https:
     });
 
     const deandre = await Player.create({
@@ -68,17 +76,17 @@ export const seedDatabase = async () => {
       lastName: "Ayton",
       team: "Los Angeles Lakers",
       position: "C",
-      imageUrl: "https://cdn.nba.com/headshots/nba/latest/260x190/1629028.png",
+      imageUrl: "https:
     });
 
-    // Create game between Lakers and Celtics for December 2026
+    
     const game = await Game.create({
       homeTeam: "Los Angeles Lakers",
       awayTeam: "Boston Celtics",
-      startTime: new Date("2026-12-25T20:00:00.000Z"), // Christmas Day 2026
+      startTime: new Date("2026-12-25T20:00:00.000Z"), 
     });
 
-    // Create picks for each player
+    
     const lukaPick = await Pick.create({
       player: luka._id,
       game: game._id,
@@ -107,7 +115,7 @@ export const seedDatabase = async () => {
       line: 26.5,
     });
 
-    // Add picks for the new players
+    
     const anferneePick = await Pick.create({
       player: anfernee._id,
       game: game._id,
@@ -128,6 +136,35 @@ export const seedDatabase = async () => {
       statType: "rebounds",
       line: 10.5,
     });
+
+    
+    const bet360ClientId = process.env.BET360_CLIENT_ID || "bet360_client_id";
+    const bet360ClientSecret = process.env.BET360_CLIENT_SECRET || "bet360_client_secret";
+    const bet360RedirectUri = process.env.BET360_UI_URL 
+      ? `${process.env.BET360_UI_URL}/oauth/callback`
+      : "http:
+
+    
+    let oauthClient = await OAuthClient.findOne({ clientId: bet360ClientId });
+    
+    if (!oauthClient) {
+      oauthClient = await OAuthClient.create({
+        clientId: bet360ClientId,
+        clientSecret: bet360ClientSecret,
+        clientName: "Bet360",
+        redirectUris: [bet360RedirectUri],
+        allowedScopes: ["betting_events:read", "betting_events:subscribe"],
+        isActive: true,
+      });
+      console.log(colors.green("✅ OAuth client created for Bet360"));
+    } else {
+      
+      if (!oauthClient.redirectUris.includes(bet360RedirectUri)) {
+        oauthClient.redirectUris.push(bet360RedirectUri);
+        await oauthClient.save();
+        console.log(colors.yellow("⚠️  Updated OAuth client redirect URI"));
+      }
+    }
   } catch (error) {
     console.error(colors.red("❌ Error during database seeding:"), error);
   }

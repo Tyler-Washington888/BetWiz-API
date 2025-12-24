@@ -1,6 +1,6 @@
 import { Document, Types } from "mongoose";
 
-// ====== ENUMS ======
+
 export enum PlayerPosition {
   PG = "PG",
   SG = "SG",
@@ -42,7 +42,7 @@ export enum NBATeam {
   WAS = "Washington Wizards",
 }
 
-// ====== MONGOOSE DOCUMENT INTERFACES ======
+
 export interface IGameDocument extends Document {
   _id: Types.ObjectId;
   homeTeam: NBATeam;
@@ -90,7 +90,7 @@ export interface IEntryDocument extends Document {
   updatedAt: Date;
 }
 
-// ====== API REQUEST INTERFACES ======
+
 export interface EntryPickRequest {
   pickId: string;
   selection: "over" | "under";
@@ -102,7 +102,7 @@ export interface CreateEntryRequest {
   betType: "power";
 }
 
-// ====== API RESPONSE INTERFACES ======
+
 export interface GameResponse {
   _id: string;
   homeTeam: NBATeam;
@@ -151,11 +151,12 @@ export interface EntryResponse {
   updatedAt: Date;
 }
 
-// ====== SNS PAYLOAD INTERFACES ======
+
 export interface SNSEntryData extends EntryResponse {
   userId: string;
   userEmail: string;
   sportsbook: string;
+  subscribedBet360Emails: string[];
   timestamp: string;
   event: "ENTRY_CREATED";
 }

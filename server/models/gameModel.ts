@@ -19,7 +19,7 @@ const gameSchema = new Schema<IGameDocument>(
       type: Date,
       required: [true, "Start time is required"],
       set: function (value: string | Date): Date {
-        // Store original string for validation
+        
         if (typeof value === "string") {
           (this as any).__originalStartTimeString = value;
         }
@@ -28,7 +28,7 @@ const gameSchema = new Schema<IGameDocument>(
       validate: [
         {
           validator: function (value: Date): boolean {
-            // Check if the date is valid
+            
             if (!(value instanceof Date) || isNaN(value.getTime())) {
               return false;
             }
@@ -44,10 +44,10 @@ const gameSchema = new Schema<IGameDocument>(
         },
         {
           validator: function (value: Date): boolean {
-            // Check original string format for ISO 8601 with required Z
+            
             const originalString = (this as any).__originalStartTimeString;
             if (!originalString) {
-              return true; // If no original string, skip this validation (field not being updated)
+              return true; 
             }
             const iso8601WithZRegex =
               /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/;

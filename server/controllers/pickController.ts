@@ -3,9 +3,9 @@ import asyncHandler from "express-async-handler";
 import Pick from "../models/pickModel";
 import { PickResponse } from "@/interfaces/betting";
 
-// @desc    Get all available picks for future games
-// @route   GET /api/picks
-// @access  Private
+
+
+
 const getPicks = asyncHandler(async (req: Request, res: Response) => {
   const currentTime = new Date();
 
@@ -14,7 +14,7 @@ const getPicks = asyncHandler(async (req: Request, res: Response) => {
     .populate("game")
     .sort({ createdAt: -1 });
 
-  // Filter picks to only include those with future games
+  
   const futurePicks = picks.filter((pick) => {
     const gameStartTime = new Date((pick.game as any).startTime);
     return gameStartTime > currentTime;

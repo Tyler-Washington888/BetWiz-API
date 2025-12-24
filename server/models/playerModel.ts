@@ -40,7 +40,7 @@ const playerSchema = new Schema<IPlayerDocument>(
   }
 );
 
-// Create unique compound index on firstName, lastName, and team
+
 playerSchema.index(
   { firstName: 1, lastName: 1, team: 1 },
   { unique: true, name: "unique_player_identity" }

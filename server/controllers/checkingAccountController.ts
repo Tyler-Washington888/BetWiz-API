@@ -7,9 +7,9 @@ import {
   ICheckingAccountDocument,
 } from "../interfaces/checkingAccount";
 
-// @desc    Deposit funds to main balance
-// @route   PUT /api/checking-account/deposit
-// @access  Private
+
+
+
 const deposit = asyncHandler<DepositRequest, Response<DepositResponse>>(
   async (req, res) => {
     const { amount } = req.body;
@@ -47,7 +47,7 @@ const deposit = asyncHandler<DepositRequest, Response<DepositResponse>>(
   }
 );
 
-// Standalone function to create a checking account for a user
+
 export const createCheckingAccountForUser = async (
   userId: string
 ): Promise<ICheckingAccountDocument> => {
@@ -64,13 +64,13 @@ export const createCheckingAccountForUser = async (
   return createdCheckingAccount;
 };
 
-// Helper function to get checking account by userId
+
 export const getCheckingAccountByUserId = async (userId: string) => {
   const checkingAccount = await CheckingAccount.findOne({ userId });
   return checkingAccount;
 };
 
-// Helper function to decrease balance by userId (for internal use)
+
 export const decreaseBalanceByUserId = async (
   userId: string,
   amount: number

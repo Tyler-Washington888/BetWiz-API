@@ -1,7 +1,7 @@
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
 import { SNSEntryData } from "../interfaces/betting";
 
-// Initialize SNS client
+
 const snsClient = new SNSClient({
   region: process.env.AWS_REGION,
 });
@@ -34,7 +34,7 @@ export async function publishEntryToSNS(
     await snsClient.send(command);
   } catch (error) {
     console.error("❌ Failed to publish to SNS:", error);
-    // Don't throw - we don't want to fail the entry creation if SNS fails
-    // Consider adding retry logic or alerting here
+    
+    
   }
 }

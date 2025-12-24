@@ -31,7 +31,7 @@ const checkingAccountSchema = new Schema<ICheckingAccountDocument>(
   }
 );
 
-// Method to deposit to main balance
+
 checkingAccountSchema.methods.increaseBalance = function (
   this: ICheckingAccountDocument,
   amount: number
@@ -44,7 +44,7 @@ checkingAccountSchema.methods.increaseBalance = function (
   return this.save();
 };
 
-// Method to decrease main balance
+
 checkingAccountSchema.methods.decreaseBalance = function (
   this: ICheckingAccountDocument,
   amount: number
@@ -60,11 +60,11 @@ checkingAccountSchema.methods.decreaseBalance = function (
   return this.save();
 };
 
-// Ensure virtual fields are serialized
+
 checkingAccountSchema.set("toJSON", { virtuals: true });
 checkingAccountSchema.set("toObject", { virtuals: true });
 
-// Create and export the model
+
 const CheckingAccount: Model<ICheckingAccountDocument> =
   mongoose.model<ICheckingAccountDocument>(
     "CheckingAccount",

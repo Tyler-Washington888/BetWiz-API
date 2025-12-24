@@ -10,6 +10,9 @@ import {
   SignUpResponse,
   SignUpRequest,
   AuthenticatedRequest,
+  SubscriptionStatusResponse,
+  SubscribeRequest,
+  UnsubscribeRequest,
 } from "../interfaces/user";
 import {
   createCheckingAccountForUser,
@@ -17,9 +20,9 @@ import {
 } from "./checkingAccountController";
 import { JWTPayload } from "../interfaces/jwt";
 
-// @desc    Register user
-// @route   POST /api/users/signup
-// @access  Public
+
+
+
 const signUp = asyncHandler(
   async (req: Request, res: Response<SignUpResponse>) => {
     const {
@@ -34,6 +37,17 @@ const signUp = asyncHandler(
     if (!email) {
       res.status(400);
       throw new Error("Email is required");
+    }
+
+    if (!password) {
+      res.status(400);
+      throw new Error("Password is required");
+    }
+
+    
+    if (password.length > 40) {
+      res.status(400);
+      throw new Error("Password cannot exceed 40 characters");
     }
 
     const userExists = await User.findOne({ email });
@@ -62,7 +76,8 @@ const signUp = asyncHandler(
         lastname: user.lastname,
         email: user.email,
         dateOfBirth: user.dateOfBirth,
-        linkedBet360Account: user.linkedBet360Account,
+        isSubscribed: user.isSubscribed || false,
+        subscribedBet360Emails: user.subscribedBet360Emails || [],
         creditBalance: 0,
         role: user.role,
         token: generateJsonWebToken(userIdToString),
@@ -76,9 +91,9 @@ const signUp = asyncHandler(
   }
 );
 
-// @desc    Authenticate  user
-// @route   POST /api/users/login
-// @access  Public
+
+
+
 const login = asyncHandler(
   async (req: Request, res: Response<LoginResponse>) => {
     const { email, password }: LoginRequest = req.body;
@@ -105,7 +120,8 @@ const login = asyncHandler(
         lastname: user.lastname,
         email: user.email,
         dateOfBirth: user.dateOfBirth,
-        linkedBet360Account: user.linkedBet360Account,
+        isSubscribed: user.isSubscribed || false,
+        subscribedBet360Emails: user.subscribedBet360Emails || [],
         creditBalance: checkingAccount?.balance || 0,
         role: user.role,
         token: generateJsonWebToken(userIdToString),
@@ -119,9 +135,9 @@ const login = asyncHandler(
   }
 );
 
-// @desc    Get user profile data
-// @route   GET /api/users/profile
-// @access  Private
+
+
+
 const getProfile = asyncHandler(
   async (req: Request, res: Response<ProfileResponse>) => {
     const typedReq = req as AuthenticatedRequest;
@@ -145,7 +161,8 @@ const getProfile = asyncHandler(
       lastname: user.lastname,
       email: user.email,
       dateOfBirth: user.dateOfBirth,
-      linkedBet360Account: user.linkedBet360Account,
+      isSubscribed: user.isSubscribed || false,
+      subscribedBet360Emails: user.subscribedBet360Emails || [],
       creditBalance: checkingAccount?.balance || 0,
       role: user.role,
       createdAt: user.createdAt,
@@ -156,9 +173,9 @@ const getProfile = asyncHandler(
   }
 );
 
-// @desc    Acknowledge that user's Betwiz account is linked to Bet360 and add $20 promo bonus
-// @route   POST /api/users/:userId/acknowledge-betwiz-bet360-link
-// @access  Private/Admin
+
+
+
 const acknowledgeBetwizBet360Link = asyncHandler(
   async (req: Request, res: Response) => {
     const { email } = req.params;
@@ -178,14 +195,14 @@ const acknowledgeBetwizBet360Link = asyncHandler(
 
       const userIdToString = user._id.toString();
 
-      if (user.linkedBet360Account) {
+      if (user.isSubscribed) {
         res.status(400);
         throw new Error(
           "User's Betwiz-Bet360 link has already been acknowledged"
         );
       }
 
-      user.linkedBet360Account = true;
+      user.isSubscribed = true;
       await user.save();
 
       const checkingAccount = await getCheckingAccountByUserId(userIdToString);
@@ -198,7 +215,8 @@ const acknowledgeBetwizBet360Link = asyncHandler(
           firstname: user.firstname,
           lastname: user.lastname,
           email: user.email,
-          linkedBet360Account: user.linkedBet360Account,
+          isSubscribed: user.isSubscribed,
+          subscribedBet360Emails: user.subscribedBet360Emails,
         },
         balance: checkingAccount?.balance || 0,
       });
@@ -211,7 +229,7 @@ const acknowledgeBetwizBet360Link = asyncHandler(
   }
 );
 
-// Generate JWT
+
 const generateJsonWebToken = (id: string): string => {
   const secret = process.env.JWT_SECRET;
 
@@ -226,4 +244,149 @@ const generateJsonWebToken = (id: string): string => {
   });
 };
 
-export { signUp, login, getProfile, acknowledgeBetwizBet360Link };
+
+
+
+const getSubscriptionStatus = asyncHandler(
+  async (req: Request, res: Response<SubscriptionStatusResponse>) => {
+    const typedReq = req as AuthenticatedRequest;
+    const { userId } = req.params;
+
+    
+    if (userId !== typedReq.user._id.toString()) {
+      res.status(403);
+      throw new Error("Not authorized to access this resource");
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
+    }
+
+    const response: SubscriptionStatusResponse = {
+      isSubscribed: user.isSubscribed || false,
+      subscribedBet360Emails: user.subscribedBet360Emails || [],
+    };
+
+    res.status(200).json(response);
+  }
+);
+
+
+
+
+const subscribe = asyncHandler(
+  async (req: Request, res: Response) => {
+    const typedReq = req as AuthenticatedRequest;
+    const { userId } = req.params;
+    const { bet360Email }: SubscribeRequest = req.body;
+
+    if (!bet360Email) {
+      res.status(400);
+      throw new Error("Bet360 email is required");
+    }
+
+    
+    if (userId !== typedReq.user._id.toString()) {
+      res.status(403);
+      throw new Error("Not authorized to access this resource");
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
+    }
+
+    
+    const updateData: {
+      $addToSet?: { subscribedBet360Emails: string };
+      isSubscribed?: boolean;
+    } = {};
+    
+    
+    if (!user.subscribedBet360Emails.includes(bet360Email)) {
+      updateData.$addToSet = { subscribedBet360Emails: bet360Email };
+    }
+
+    
+    if (!user.isSubscribed) {
+      updateData.isSubscribed = true;
+    }
+
+    
+    
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: false } 
+    );
+
+    if (!updatedUser) {
+      res.status(404);
+      throw new Error("User not found");
+    }
+
+    
+    const { notifyBet360Subscription } = await import("../services/bet360Service");
+    await notifyBet360Subscription(bet360Email, true);
+
+    res.status(200).json({
+      message: "Successfully subscribed to Bet360",
+      isSubscribed: updatedUser.isSubscribed,
+      subscribedBet360Emails: updatedUser.subscribedBet360Emails,
+    });
+  }
+);
+
+
+
+
+const unsubscribe = asyncHandler(
+  async (req: Request, res: Response) => {
+    const typedReq = req as AuthenticatedRequest;
+    const { userId } = req.params;
+    const { bet360Email }: UnsubscribeRequest = req.body;
+
+    if (!bet360Email) {
+      res.status(400);
+      throw new Error("Bet360 email is required");
+    }
+
+    
+    if (userId !== typedReq.user._id.toString()) {
+      res.status(403);
+      throw new Error("Not authorized to access this resource");
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
+    }
+
+    
+    user.subscribedBet360Emails = user.subscribedBet360Emails.filter(
+      (email) => email !== bet360Email
+    );
+
+    
+    if (user.subscribedBet360Emails.length === 0) {
+      user.isSubscribed = false;
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Successfully unsubscribed from Bet360",
+      isSubscribed: user.isSubscribed,
+      subscribedBet360Emails: user.subscribedBet360Emails,
+    });
+  }
+);
+
+export { signUp, login, getProfile, acknowledgeBetwizBet360Link, getSubscriptionStatus, subscribe, unsubscribe };

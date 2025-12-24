@@ -49,7 +49,7 @@ const entrySchema = new Schema<IEntryDocument>(
   }
 );
 
-// Validation: Entry must have between 2 and 6 picks
+
 entrySchema.pre("save", function (next) {
   if (this.picks.length < 2 || this.picks.length > 6) {
     next(new Error("Entry must have between 2 and 6 picks"));

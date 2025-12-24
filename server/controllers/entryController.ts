@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import Entry from "../models/entryModel";
 import Pick from "../models/pickModel";
+import User from "../models/userModel";
 import {
   CreateEntryRequest,
   EntryResponse,
@@ -12,9 +13,9 @@ import { AuthenticatedRequest } from "@/interfaces/user";
 import { decreaseBalanceByUserId } from "./checkingAccountController";
 import { publishEntryToSNS } from "../services/snsService";
 
-// @desc    Create a new entry (place bet)
-// @route   POST /api/entries
-// @access  Private
+
+
+
 const createEntry = asyncHandler(
   async (req: Request, res: Response<EntryResponse>) => {
     const typedReq = req as AuthenticatedRequest;
@@ -30,7 +31,7 @@ const createEntry = asyncHandler(
       throw new Error("Picks are required");
     }
 
-    // Verify all picks exist and validate selections
+    
     const pickIds = picks.map((p) => p.pickId);
     const validPicks = await Pick.find({ _id: { $in: pickIds } });
     if (validPicks.length !== picks.length) {
@@ -38,7 +39,7 @@ const createEntry = asyncHandler(
       throw new Error("One or more picks are invalid");
     }
 
-    // Validate selections
+    
     for (const pick of picks) {
       if (!pick.selection || !["over", "under"].includes(pick.selection)) {
         res.status(400);
@@ -51,10 +52,10 @@ const createEntry = asyncHandler(
     const payoutMultiplier = calculatePayoutMultiplier(picks.length);
 
     try {
-      // Deduct wager amount from user's balance
+      
       await decreaseBalanceByUserId(typedReq.user._id.toString(), wagerAmount);
 
-      // Create the entry with picks and selections
+      
       const entryPicks = picks.map((p) => ({
         pick: p.pickId,
         selection: p.selection,
@@ -68,7 +69,7 @@ const createEntry = asyncHandler(
         betType,
       });
 
-      // Populate the entry with pick details
+      
       const populatedEntry = await Entry.findById(entry._id)
         .populate({
           path: "picks.pick",
@@ -125,16 +126,21 @@ const createEntry = asyncHandler(
         updatedAt: populatedEntry.updatedAt,
       };
 
-      // Publish entry to SNS for Bet360 processing
+      
       const userId = typedReq.user._id.toString();
       const userEmail = typedReq.user.email;
-      const sportsbook = "bet360";
+      const sportsbook = "betwiz";
+
+      
+      const user = await User.findById(userId);
+      const subscribedBet360Emails = user?.subscribedBet360Emails || [];
 
       const snsPayload: SNSEntryData = {
         ...response,
         userId,
         userEmail,
         sportsbook,
+        subscribedBet360Emails,
         timestamp: new Date().toISOString(),
         event: "ENTRY_CREATED" as const,
       };
@@ -149,7 +155,7 @@ const createEntry = asyncHandler(
   }
 );
 
-// Helper function to calculate payout multiplier based on picks count (power only)
+
 const calculatePayoutMultiplier = (pickCount: number): number => {
   const powerMultipliers: { [key: number]: number } = {
     2: 2.5,

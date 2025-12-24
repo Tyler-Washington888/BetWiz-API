@@ -1,13 +1,13 @@
 import { Document } from "mongoose";
 import { Request } from "express";
 
-// ====== ENUMS ======
+
 export enum UserRole {
   USER = "user",
   ADMIN = "admin",
 }
 
-// ====== MONGOOSE DOCUMENT INTERFACE ======
+
 export interface IUserDocument extends Document {
   _id: string;
   firstname: string;
@@ -15,14 +15,17 @@ export interface IUserDocument extends Document {
   email: string;
   password: string;
   dateOfBirth: string;
-  linkedBet360Account: boolean;
+  isSubscribed: boolean;
+  subscribedBet360Emails: string[];
+  refreshToken?: string;
+  refreshTokenExpiresAt?: Date;
   role: UserRole;
   createdAt: Date;
   updatedAt: Date;
   matchPassword(enteredPassword: string): Promise<boolean>;
 }
 
-// ====== REQUEST INTERFACES ======
+
 export interface SignUpRequest {
   firstname: string;
   lastname: string;
@@ -41,7 +44,7 @@ export interface AuthenticatedRequest extends Request {
   user: IUserDocument;
 }
 
-// ====== RESPONSE INTERFACES ======
+
 export interface SignUpResponse {
   _id: string;
   firstname: string;
@@ -50,7 +53,8 @@ export interface SignUpResponse {
   dateOfBirth: string;
   token: string;
   role: UserRole;
-  linkedBet360Account: boolean;
+  isSubscribed: boolean;
+  subscribedBet360Emails: string[];
   creditBalance: number;
 }
 
@@ -62,7 +66,8 @@ export interface LoginResponse {
   dateOfBirth: string;
   token: string;
   role: string;
-  linkedBet360Account: boolean;
+  isSubscribed: boolean;
+  subscribedBet360Emails: string[];
   creditBalance: number;
 }
 
@@ -72,9 +77,24 @@ export interface ProfileResponse {
   lastname: string;
   email: string;
   dateOfBirth: string;
-  linkedBet360Account: boolean;
+  isSubscribed: boolean;
+  subscribedBet360Emails: string[];
   role: UserRole;
   creditBalance: number;
   createdAt: Date;
   updatedAt: Date;
+}
+
+
+export interface SubscriptionStatusResponse {
+  isSubscribed: boolean;
+  subscribedBet360Emails: string[];
+}
+
+export interface SubscribeRequest {
+  bet360Email: string;
+}
+
+export interface UnsubscribeRequest {
+  bet360Email: string;
 }
